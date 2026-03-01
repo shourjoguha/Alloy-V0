@@ -1,0 +1,177 @@
+{
+  "test_suite_start_time": "2026-02-27T21:39:42.129215+00:00",
+  "tests_run": [],
+  "tests_passed": 2,
+  "tests_failed": 4,
+  "critical_failures": [
+    "Strength-Focused 5-Day: Program generation failed",
+    "Balanced 5-Day: Program generation failed",
+    "Hypertrophy-Focused 5-Day: Program generation failed",
+    "Program generation failed for region rotation test",
+    "Program generation failed: [\"Program generation failed: 'NoneType' object has no attribute 'training_blocks'\"]",
+    "Error handling test failed: 'EnhancedErrorLogger' object has no attribute 'get_error_by_trace_id'"
+  ],
+  "warnings": [
+    "Missing expected subtypes: {'run', 'vertical_pull', 'carry', 'rotation', 'vertical_push', 'bike', 'lunge', 'hinge', 'jump', 'row', 'mobility'}",
+    "5-Day Resistance Program - Lower Focus: Low subtype coverage (33.3%)",
+    "5-Day Mobility Focus: Low subtype coverage (0.0%)"
+  ],
+  "performance_metrics": {
+    "total_tests": 6,
+    "average_test_duration": 0.021742166666666663,
+    "slowest_test": [
+      0.072471,
+      "Pattern Subtype Mapping"
+    ],
+    "fastest_test": [
+      0.002361,
+      "Error Handling Integration"
+    ]
+  },
+  "test_suite_end_time": "2026-02-27T21:39:42.262417+00:00",
+  "total_duration_seconds": 0.133202,
+  "detailed_test_results": [
+    {
+      "test_name": "Pattern Subtype Mapping",
+      "success": true,
+      "errors": [],
+      "warnings": [
+        "Missing expected subtypes: {'run', 'vertical_pull', 'carry', 'rotation', 'vertical_push', 'bike', 'lunge', 'hinge', 'jump', 'row', 'mobility'}"
+      ],
+      "details": {
+        "database_stats": {
+          "total_movements": 177,
+          "movements_with_subtype": 177,
+          "unique_subtypes": 3,
+          "coverage_percentage": 100.0
+        },
+        "subtype_distribution": {
+          "squat": 63,
+          "horizontal_pull": 62,
+          "horizontal_push": 52
+        }
+      },
+      "execution_time": 0.072471,
+      "trace_id": null
+    },
+    {
+      "test_name": "Enhanced Movement Service Integration",
+      "success": true,
+      "errors": [],
+      "warnings": [
+        "5-Day Resistance Program - Lower Focus: Low subtype coverage (33.3%)",
+        "5-Day Mobility Focus: Low subtype coverage (0.0%)"
+      ],
+      "details": {
+        "5-Day Resistance Program - Upper Focus": {
+          "total_movements": 8,
+          "subtype_coverage": {
+            "horizontal_pull": 3,
+            "horizontal_push": 5
+          },
+          "equipment_coverage": {
+            "unknown": 8
+          },
+          "region_coverage": {
+            "anterior upper": 3,
+            "posterior upper": 5
+          },
+          "expected_coverage_percentage": 50.0,
+          "missing_expected_subtypes": [
+            "vertical_push",
+            "vertical_pull"
+          ]
+        },
+        "5-Day Resistance Program - Lower Focus": {
+          "total_movements": 4,
+          "subtype_coverage": {
+            "squat": 4
+          },
+          "equipment_coverage": {
+            "unknown": 4
+          },
+          "region_coverage": {
+            "anterior lower": 4
+          },
+          "expected_coverage_percentage": 33.33333333333333,
+          "missing_expected_subtypes": [
+            "lunge",
+            "hinge"
+          ]
+        },
+        "5-Day Mobility Focus": {
+          "total_movements": 0,
+          "subtype_coverage": {},
+          "equipment_coverage": {},
+          "region_coverage": {},
+          "expected_coverage_percentage": 0.0,
+          "missing_expected_subtypes": [
+            "stretch",
+            "mobility",
+            "activation"
+          ]
+        }
+      },
+      "execution_time": 0.012326,
+      "trace_id": null
+    },
+    {
+      "test_name": "5-Day Intelligent Day Spacing",
+      "success": false,
+      "errors": [
+        "Strength-Focused 5-Day: Program generation failed",
+        "Balanced 5-Day: Program generation failed",
+        "Hypertrophy-Focused 5-Day: Program generation failed"
+      ],
+      "warnings": [],
+      "details": {},
+      "execution_time": 0.01578,
+      "trace_id": null
+    },
+    {
+      "test_name": "Primary Region Rotation",
+      "success": false,
+      "errors": [
+        "Program generation failed for region rotation test"
+      ],
+      "warnings": [],
+      "details": {},
+      "execution_time": 0.013817,
+      "trace_id": null
+    },
+    {
+      "test_name": "Complete 5-Day Program",
+      "success": false,
+      "errors": [
+        "Program generation failed: [\"Program generation failed: 'NoneType' object has no attribute 'training_blocks'\"]"
+      ],
+      "warnings": [],
+      "details": {},
+      "execution_time": 0.013698,
+      "trace_id": null
+    },
+    {
+      "test_name": "Error Handling Integration",
+      "success": false,
+      "errors": [
+        "Error handling test failed: 'EnhancedErrorLogger' object has no attribute 'get_error_by_trace_id'"
+      ],
+      "warnings": [],
+      "details": {
+        "logged_errors": [
+          {
+            "trace_id": "8b767e12-cf1e-4aca-b831-129f3827bc98",
+            "error_code": "TEST_ERROR_001"
+          },
+          {
+            "trace_id": "445b4b81-2559-43e5-829d-26b183edb882",
+            "error_code": "DATABASE_CONNECTION_TEST"
+          }
+        ],
+        "retrieved_errors": 10
+      },
+      "execution_time": 0.002361,
+      "trace_id": null
+    }
+  ]
+}

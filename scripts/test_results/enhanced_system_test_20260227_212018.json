@@ -1,0 +1,60 @@
+{
+  "test_start_time": "2026-02-27T20:20:18.478805",
+  "tests_run": [
+    {
+      "test_name": "Pattern Subtype Migration",
+      "success": false,
+      "errors": [
+        "Failed to create backup: password authentication failed for user \"jacked\""
+      ],
+      "warnings": [
+        "Creating new ENUM type - ensure compatibility",
+        "Adding new column - ensure proper indexing",
+        "Creating indexes - may take time on large tables",
+        "DOWN section drops columns - data loss on rollback",
+        "DOWN section drops types - ensure no dependencies"
+      ],
+      "details": {},
+      "dry_run": {
+        "migration_name": "20260227_enhance_pattern_subtype",
+        "success": true,
+        "start_time": "2026-02-27T20:20:18.479144",
+        "end_time": null,
+        "affected_rows": 0,
+        "backup_created": false,
+        "errors": [],
+        "warnings": [
+          "Creating new ENUM type - ensure compatibility",
+          "Adding new column - ensure proper indexing",
+          "Creating indexes - may take time on large tables",
+          "DOWN section drops columns - data loss on rollback",
+          "DOWN section drops types - ensure no dependencies"
+        ],
+        "details": {},
+        "simulated": true,
+        "up_sql_lines": 153,
+        "down_sql_lines": 7
+      },
+      "migration_result": {
+        "migration_name": "20260227_enhance_pattern_subtype",
+        "success": false,
+        "start_time": "2026-02-27T20:20:18.479337",
+        "end_time": null,
+        "affected_rows": 0,
+        "backup_created": false,
+        "errors": [
+          "Failed to create backup: password authentication failed for user \"jacked\""
+        ],
+        "warnings": [],
+        "details": {}
+      }
+    }
+  ],
+  "tests_passed": 0,
+  "tests_failed": 1,
+  "errors": [
+    "Failed to create backup: password authentication failed for user \"jacked\""
+  ],
+  "test_end_time": "2026-02-27T20:20:18.541903",
+  "total_duration_seconds": 0.063098
+}

@@ -1,0 +1,441 @@
+{
+  "test_suite_start_time": "2026-02-27T21:48:07.210394+00:00",
+  "tests_run": [],
+  "tests_passed": 5,
+  "tests_failed": 1,
+  "critical_failures": [],
+  "warnings": [
+    "Missing expected subtypes: {'hinge', 'row', 'run', 'rotation', 'lunge', 'carry', 'vertical_pull', 'jump', 'bike', 'vertical_push', 'mobility'}",
+    "5-Day Resistance Program - Lower Focus: Low subtype coverage (33.3%)",
+    "5-Day Mobility Focus: Low subtype coverage (0.0%)",
+    "Error traceability issue: method_not_found"
+  ],
+  "performance_metrics": {
+    "total_tests": 6,
+    "average_test_duration": 0.026033,
+    "slowest_test": [
+      0.092051,
+      "Pattern Subtype Mapping"
+    ],
+    "fastest_test": [
+      0.002136,
+      "Error Logging System"
+    ]
+  },
+  "component_status": {
+    "pattern_subtype": true,
+    "movement_service": true,
+    "day_spacing": false,
+    "region_rotation": true,
+    "configuration": true,
+    "error_logging": true
+  },
+  "test_suite_end_time": "2026-02-27T21:48:07.368088+00:00",
+  "total_duration_seconds": 0.157694,
+  "detailed_test_results": [
+    {
+      "test_name": "Pattern Subtype Mapping",
+      "success": true,
+      "errors": [],
+      "warnings": [
+        "Missing expected subtypes: {'hinge', 'row', 'run', 'rotation', 'lunge', 'carry', 'vertical_pull', 'jump', 'bike', 'vertical_push', 'mobility'}"
+      ],
+      "details": {
+        "database_stats": {
+          "total_movements": 177,
+          "movements_with_subtype": 177,
+          "unique_subtypes": 3,
+          "coverage_percentage": 100.0
+        },
+        "subtype_distribution": {
+          "squat": 63,
+          "horizontal_pull": 62,
+          "horizontal_push": 52
+        },
+        "region_mappings": {
+          "squat": {
+            "anterior lower": 55,
+            "lower body": 5,
+            "posterior lower": 2,
+            "full body": 1
+          },
+          "horizontal_push": {
+            "anterior upper": 37,
+            "posterior upper": 12,
+            "full body": 2,
+            "upper body": 1
+          },
+          "horizontal_pull": {
+            "posterior upper": 35,
+            "anterior upper": 19,
+            "shoulder": 3,
+            "upper body": 2,
+            "full body": 2,
+            "posterior lower": 1
+          }
+        }
+      },
+      "execution_time": 0.092051,
+      "trace_id": null
+    },
+    {
+      "test_name": "Enhanced Movement Service Integration",
+      "success": true,
+      "errors": [],
+      "warnings": [
+        "5-Day Resistance Program - Lower Focus: Low subtype coverage (33.3%)",
+        "5-Day Mobility Focus: Low subtype coverage (0.0%)"
+      ],
+      "details": {
+        "5-Day Resistance Program - Upper Focus": {
+          "total_movements": 8,
+          "subtype_coverage": {
+            "horizontal_pull": 3,
+            "horizontal_push": 5
+          },
+          "equipment_coverage": {
+            "unknown": 8
+          },
+          "region_coverage": {
+            "posterior upper": 6,
+            "anterior upper": 2
+          },
+          "sample_movements": [
+            {
+              "name": "Single Arm Row",
+              "subtype": "horizontal_pull",
+              "equipment": "unknown",
+              "region": "posterior upper"
+            },
+            {
+              "name": "Barbell Row",
+              "subtype": "horizontal_pull",
+              "equipment": "unknown",
+              "region": "posterior upper"
+            },
+            {
+              "name": "Close-Grip Ez-Bar Press",
+              "subtype": "horizontal_push",
+              "equipment": "unknown",
+              "region": "posterior upper"
+            }
+          ],
+          "expected_coverage_percentage": 50.0,
+          "missing_expected_subtypes": [
+            "vertical_push",
+            "vertical_pull"
+          ],
+          "unexpected_subtypes": []
+        },
+        "5-Day Resistance Program - Lower Focus": {
+          "total_movements": 4,
+          "subtype_coverage": {
+            "squat": 4
+          },
+          "equipment_coverage": {
+            "unknown": 4
+          },
+          "region_coverage": {
+            "anterior lower": 4
+          },
+          "sample_movements": [
+            {
+              "name": "Pause Squat",
+              "subtype": "squat",
+              "equipment": "unknown",
+              "region": "anterior lower"
+            },
+            {
+              "name": "Front Squat",
+              "subtype": "squat",
+              "equipment": "unknown",
+              "region": "anterior lower"
+            },
+            {
+              "name": "Goblet Squat",
+              "subtype": "squat",
+              "equipment": "unknown",
+              "region": "anterior lower"
+            }
+          ],
+          "expected_coverage_percentage": 33.33333333333333,
+          "missing_expected_subtypes": [
+            "hinge",
+            "lunge"
+          ],
+          "unexpected_subtypes": []
+        },
+        "5-Day Mobility Focus": {
+          "total_movements": 0,
+          "subtype_coverage": {},
+          "equipment_coverage": {},
+          "region_coverage": {},
+          "sample_movements": [],
+          "expected_coverage_percentage": 0.0,
+          "missing_expected_subtypes": [
+            "stretch",
+            "mobility",
+            "activation"
+          ],
+          "unexpected_subtypes": []
+        }
+      },
+      "execution_time": 0.014026,
+      "trace_id": null
+    },
+    {
+      "test_name": "Day Spacing Logic Unit Test",
+      "success": false,
+      "errors": [],
+      "warnings": [],
+      "details": {
+        "spacing_tests": {
+          "1_days": {
+            "training_days": [
+              4
+            ],
+            "day_count": 1,
+            "consecutive_analysis": {
+              "max_consecutive": 1,
+              "consecutive_sequences": []
+            },
+            "rest_day_analysis": {
+              "rest_days": [
+                1,
+                2,
+                3,
+                5,
+                6,
+                7
+              ],
+              "rest_day_count": 6,
+              "has_weekend_rest": true,
+              "has_midweek_rest": false
+            },
+            "spacing_quality": "acceptable",
+            "validation": {
+              "valid": true,
+              "issues": []
+            }
+          },
+          "3_days": {
+            "training_days": [
+              1,
+              3,
+              5
+            ],
+            "day_count": 3,
+            "consecutive_analysis": {
+              "max_consecutive": 1,
+              "consecutive_sequences": []
+            },
+            "rest_day_analysis": {
+              "rest_days": [
+                2,
+                4,
+                6,
+                7
+              ],
+              "rest_day_count": 4,
+              "has_weekend_rest": true,
+              "has_midweek_rest": true
+            },
+            "spacing_quality": "acceptable",
+            "validation": {
+              "valid": true,
+              "issues": []
+            }
+          },
+          "5_days": {
+            "training_days": [
+              1,
+              2,
+              4,
+              5,
+              6
+            ],
+            "day_count": 5,
+            "consecutive_analysis": {
+              "max_consecutive": 3,
+              "consecutive_sequences": [
+                [
+                  1,
+                  2
+                ],
+                [
+                  4,
+                  5,
+                  6
+                ]
+              ]
+            },
+            "rest_day_analysis": {
+              "rest_days": [
+                3,
+                7
+              ],
+              "rest_day_count": 2,
+              "has_weekend_rest": true,
+              "has_midweek_rest": false
+            },
+            "spacing_quality": "suboptimal",
+            "validation": {
+              "valid": false,
+              "issues": [
+                "Too many consecutive days: 3"
+              ]
+            }
+          },
+          "6_days": {
+            "training_days": [
+              1,
+              2,
+              3,
+              5,
+              6,
+              7
+            ],
+            "day_count": 6,
+            "consecutive_analysis": {
+              "max_consecutive": 3,
+              "consecutive_sequences": [
+                [
+                  1,
+                  2,
+                  3
+                ],
+                [
+                  5,
+                  6,
+                  7
+                ]
+              ]
+            },
+            "rest_day_analysis": {
+              "rest_days": [
+                4
+              ],
+              "rest_day_count": 1,
+              "has_weekend_rest": false,
+              "has_midweek_rest": true
+            },
+            "spacing_quality": "suboptimal",
+            "validation": {
+              "valid": false,
+              "issues": [
+                "Too many consecutive days: 3"
+              ]
+            }
+          }
+        },
+        "overall_validation": {
+          "total_tests": 4,
+          "valid_tests": 2,
+          "success_rate": 50.0
+        }
+      },
+      "execution_time": 0.018236,
+      "trace_id": null
+    },
+    {
+      "test_name": "Region Rotation Logic Unit Test",
+      "success": true,
+      "errors": [],
+      "warnings": [],
+      "details": {
+        "rotation_tests": {
+          "Monday Upper Body": {
+            "selected_regions": [
+              "PrimaryRegion.POSTERIOR_UPPER"
+            ],
+            "previous_regions": [],
+            "rotation_valid": true,
+            "issues": []
+          },
+          "Tuesday Lower Body": {
+            "selected_regions": [
+              "PrimaryRegion.POSTERIOR_LOWER"
+            ],
+            "previous_regions": [
+              "PrimaryRegion.ANTERIOR_UPPER"
+            ],
+            "rotation_valid": true,
+            "issues": []
+          },
+          "Thursday Upper Body (Different)": {
+            "selected_regions": [
+              "PrimaryRegion.POSTERIOR_UPPER"
+            ],
+            "previous_regions": [
+              "PrimaryRegion.ANTERIOR_UPPER",
+              "PrimaryRegion.ANTERIOR_LOWER"
+            ],
+            "rotation_valid": true,
+            "issues": []
+          },
+          "Saturday Full Body": {
+            "selected_regions": [
+              "PrimaryRegion.FULL_BODY"
+            ],
+            "previous_regions": [
+              "PrimaryRegion.ANTERIOR_UPPER",
+              "PrimaryRegion.ANTERIOR_LOWER",
+              "PrimaryRegion.POSTERIOR_UPPER"
+            ],
+            "rotation_valid": true,
+            "issues": []
+          }
+        },
+        "overall_validation": {
+          "total_tests": 4,
+          "valid_tests": 4,
+          "success_rate": 100.0
+        }
+      },
+      "execution_time": 0.014163,
+      "trace_id": null
+    },
+    {
+      "test_name": "Configuration Integration",
+      "success": true,
+      "errors": [],
+      "warnings": [],
+      "details": {
+        "configuration_tests": {
+          "service_initialization": true,
+          "config_loading": true,
+          "movement_service_integration": true,
+          "day_patterns_available": true,
+          "region_mappings_available": true
+        },
+        "success_rate": 100.0
+      },
+      "execution_time": 0.015586,
+      "trace_id": null
+    },
+    {
+      "test_name": "Error Logging System",
+      "success": true,
+      "errors": [],
+      "warnings": [
+        "Error traceability issue: method_not_found"
+      ],
+      "details": {
+        "logged_errors": [
+          {
+            "trace_id": "c64d39c1-1b96-4cad-b179-23b2d83c5ae7",
+            "error_code": "TEST_ERROR_001"
+          },
+          {
+            "trace_id": "f1440349-dae4-4d11-95f4-0992f2616b5f",
+            "error_code": "DATABASE_CONNECTION_TEST"
+          }
+        ],
+        "retrieved_errors": 10,
+        "traceability_test": "method_not_found"
+      },
+      "execution_time": 0.002136,
+      "trace_id": null
+    }
+  ]
+}

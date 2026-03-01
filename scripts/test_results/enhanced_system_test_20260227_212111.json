@@ -1,0 +1,70 @@
+{
+  "test_start_time": "2026-02-27T20:21:11.368421",
+  "tests_run": [
+    {
+      "test_name": "Pattern Subtype Migration",
+      "success": false,
+      "errors": [
+        "Failed to execute UP section: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedFunctionError'>: function string_agg(patterntype_new, unknown) does not exist\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\n[SQL: SELECT \n    pattern_subtype, \n    COUNT(*) as count,\n    STRING_AGG(DISTINCT pattern, ', ') as original_patterns\nFROM movements \nWHERE pattern_subtype IS NOT NULL \nGROUP BY pattern_subtype \nORDER BY count DESC;]\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+        "Failed to execute ROLLBACK section: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InFailedSQLTransactionError'>: current transaction is aborted, commands ignored until end of transaction block\n[SQL: BEGIN;]\n(Background on this error at: https://sqlalche.me/e/20/dbapi)",
+        "Failed to execute ROLLBACK section: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InFailedSQLTransactionError'>: current transaction is aborted, commands ignored until end of transaction block\n[SQL: BEGIN;]\n(Background on this error at: https://sqlalche.me/e/20/dbapi)"
+      ],
+      "warnings": [
+        "Creating new ENUM type - ensure compatibility",
+        "Adding new column - ensure proper indexing",
+        "Creating indexes - may take time on large tables",
+        "DOWN section drops columns - data loss on rollback",
+        "DOWN section drops types - ensure no dependencies"
+      ],
+      "details": {},
+      "dry_run": {
+        "migration_name": "20260227_enhance_pattern_subtype",
+        "success": true,
+        "start_time": "2026-02-27T20:21:11.368710",
+        "end_time": null,
+        "affected_rows": 0,
+        "backup_created": false,
+        "errors": [],
+        "warnings": [
+          "Creating new ENUM type - ensure compatibility",
+          "Adding new column - ensure proper indexing",
+          "Creating indexes - may take time on large tables",
+          "DOWN section drops columns - data loss on rollback",
+          "DOWN section drops types - ensure no dependencies"
+        ],
+        "details": {},
+        "simulated": true,
+        "up_sql_lines": 153,
+        "down_sql_lines": 7
+      },
+      "migration_result": {
+        "migration_name": "20260227_enhance_pattern_subtype",
+        "success": false,
+        "start_time": "2026-02-27T20:21:11.368851",
+        "end_time": "2026-02-27T20:21:11.543821",
+        "affected_rows": 531,
+        "backup_created": true,
+        "errors": [
+          "Failed to execute UP section: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedFunctionError'>: function string_agg(patterntype_new, unknown) does not exist\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\n[SQL: SELECT \n    pattern_subtype, \n    COUNT(*) as count,\n    STRING_AGG(DISTINCT pattern, ', ') as original_patterns\nFROM movements \nWHERE pattern_subtype IS NOT NULL \nGROUP BY pattern_subtype \nORDER BY count DESC;]\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+          "Failed to execute ROLLBACK section: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InFailedSQLTransactionError'>: current transaction is aborted, commands ignored until end of transaction block\n[SQL: BEGIN;]\n(Background on this error at: https://sqlalche.me/e/20/dbapi)",
+          "Failed to execute ROLLBACK section: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InFailedSQLTransactionError'>: current transaction is aborted, commands ignored until end of transaction block\n[SQL: BEGIN;]\n(Background on this error at: https://sqlalche.me/e/20/dbapi)"
+        ],
+        "warnings": [],
+        "details": {},
+        "statements_executed": 46,
+        "duration_seconds": 0.17497,
+        "rollback_attempted": true,
+        "rollback_success": false
+      }
+    }
+  ],
+  "tests_passed": 0,
+  "tests_failed": 1,
+  "errors": [
+    "Failed to execute UP section: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedFunctionError'>: function string_agg(patterntype_new, unknown) does not exist\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\n[SQL: SELECT \n    pattern_subtype, \n    COUNT(*) as count,\n    STRING_AGG(DISTINCT pattern, ', ') as original_patterns\nFROM movements \nWHERE pattern_subtype IS NOT NULL \nGROUP BY pattern_subtype \nORDER BY count DESC;]\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+    "Failed to execute ROLLBACK section: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InFailedSQLTransactionError'>: current transaction is aborted, commands ignored until end of transaction block\n[SQL: BEGIN;]\n(Background on this error at: https://sqlalche.me/e/20/dbapi)",
+    "Failed to execute ROLLBACK section: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InFailedSQLTransactionError'>: current transaction is aborted, commands ignored until end of transaction block\n[SQL: BEGIN;]\n(Background on this error at: https://sqlalche.me/e/20/dbapi)"
+  ],
+  "test_end_time": "2026-02-27T20:21:11.547778",
+  "total_duration_seconds": 0.179357
+}

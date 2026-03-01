@@ -1,0 +1,190 @@
+{
+  "test_suite_start_time": "2026-02-27T21:30:39.856524",
+  "tests_run": [],
+  "tests_passed": 1,
+  "tests_failed": 5,
+  "critical_failures": [
+    "5-Day Hyrox Style failed: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column \"sled_possible\" does not exist\nHINT:  Perhaps you meant to reference the column \"movements.band_possible\".\n[SQL: \n        SELECT id, name, discipline, primary_region, primary_muscle, pattern, pattern_subtype, compound, \n               spinal_compression, bodyweight_possible, dumbbell_possible, kettlebell_possible, \n               barbell_possible, machine_possible, band_possible, plate_or_med_ball_possible,\n               is_complex_lift, is_unilateral, regression_to_move, progression_to_move\n        FROM movements \n        WHERE discipline IN ('resistance training', 'cardio', 'athletic')\n        AND compound = true\n        AND pattern_subtype IN ('squat', 'hinge', 'horizontal_push', 'horizontal_pull', 'farmer_carry', 'suitcase_carry', 'run', 'row', 'bike', 'sled_push', 'sled_pull')\n        AND (barbell_possible = true OR dumbbell_possible = true OR sled_possible = true)\n        AND primary_region IN ('full body')\n        ORDER BY RANDOM()\n        LIMIT $1\n        ]\n[parameters: (8,)]\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+    "Day spacing test failed: 2 validation errors for ProgramGenerationRequest\nuser_id\n  Field required [type=missing, input_value={'normalized_goals': {'pr..._level': 'intermediate'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\navailable_equipment\n  Field required [type=missing, input_value={'normalized_goals': {'pr..._level': 'intermediate'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing",
+    "Region rotation test failed: 3 validation errors for ProgramGenerationRequest\nuser_id\n  Field required [type=missing, input_value={'normalized_goals': {'pr..._level': 'intermediate'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\navailable_equipment\n  Field required [type=missing, input_value={'normalized_goals': {'pr..._level': 'intermediate'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\nprogram_length_weeks\n  Input should be greater than or equal to 8 [type=greater_than_equal, input_value=4, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/greater_than_equal",
+    "Complete program test failed: 2 validation errors for ProgramGenerationRequest\nuser_id\n  Field required [type=missing, input_value={'normalized_goals': {'pr..._level': 'intermediate'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\navailable_equipment\n  Field required [type=missing, input_value={'normalized_goals': {'pr..._level': 'intermediate'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing",
+    "Error handling test failed: 'EnhancedErrorLogger' object has no attribute 'format_error_for_output'"
+  ],
+  "warnings": [
+    "Missing expected subtypes: {'carry', 'mobility', 'rotation', 'run', 'row', 'vertical_push', 'lunge', 'vertical_pull', 'bike', 'hinge', 'jump'}",
+    "5-Day Resistance Program - Upper Focus: Low subtype coverage (50.0%)",
+    "5-Day Resistance Program - Lower Focus: Low subtype coverage (33.3%)"
+  ],
+  "performance_metrics": {
+    "total_tests": 6,
+    "average_test_duration": 0.07329216666666667,
+    "slowest_test": [
+      0.28378,
+      "Pattern Subtype Mapping"
+    ],
+    "fastest_test": [
+      0.001389,
+      "Error Handling Integration"
+    ]
+  },
+  "test_suite_end_time": "2026-02-27T21:30:40.298468",
+  "total_duration_seconds": 0.441944,
+  "detailed_test_results": [
+    {
+      "test_name": "Pattern Subtype Mapping",
+      "success": true,
+      "errors": [],
+      "warnings": [
+        "Missing expected subtypes: {'carry', 'mobility', 'rotation', 'run', 'row', 'vertical_push', 'lunge', 'vertical_pull', 'bike', 'hinge', 'jump'}"
+      ],
+      "details": {
+        "database_stats": {
+          "total_movements": 177,
+          "movements_with_subtype": 177,
+          "unique_subtypes": 3,
+          "coverage_percentage": 100.0
+        },
+        "subtype_distribution": {
+          "squat": {
+            "total": 63,
+            "regions": {
+              "anterior lower": 55,
+              "lower body": 5,
+              "posterior lower": 2,
+              "full body": 1
+            }
+          },
+          "horizontal_push": {
+            "total": 52,
+            "regions": {
+              "anterior upper": 37,
+              "posterior upper": 12,
+              "full body": 2,
+              "upper body": 1
+            }
+          },
+          "horizontal_pull": {
+            "total": 62,
+            "regions": {
+              "posterior upper": 35,
+              "anterior upper": 19,
+              "shoulder": 3,
+              "upper body": 2,
+              "full body": 2,
+              "posterior lower": 1
+            }
+          }
+        }
+      },
+      "execution_time": 0.28378,
+      "trace_id": null
+    },
+    {
+      "test_name": "Enhanced Movement Service Integration",
+      "success": false,
+      "errors": [
+        "5-Day Hyrox Style failed: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column \"sled_possible\" does not exist\nHINT:  Perhaps you meant to reference the column \"movements.band_possible\".\n[SQL: \n        SELECT id, name, discipline, primary_region, primary_muscle, pattern, pattern_subtype, compound, \n               spinal_compression, bodyweight_possible, dumbbell_possible, kettlebell_possible, \n               barbell_possible, machine_possible, band_possible, plate_or_med_ball_possible,\n               is_complex_lift, is_unilateral, regression_to_move, progression_to_move\n        FROM movements \n        WHERE discipline IN ('resistance training', 'cardio', 'athletic')\n        AND compound = true\n        AND pattern_subtype IN ('squat', 'hinge', 'horizontal_push', 'horizontal_pull', 'farmer_carry', 'suitcase_carry', 'run', 'row', 'bike', 'sled_push', 'sled_pull')\n        AND (barbell_possible = true OR dumbbell_possible = true OR sled_possible = true)\n        AND primary_region IN ('full body')\n        ORDER BY RANDOM()\n        LIMIT $1\n        ]\n[parameters: (8,)]\n(Background on this error at: https://sqlalche.me/e/20/f405)"
+      ],
+      "warnings": [
+        "5-Day Resistance Program - Upper Focus: Low subtype coverage (50.0%)",
+        "5-Day Resistance Program - Lower Focus: Low subtype coverage (33.3%)"
+      ],
+      "details": {
+        "5-Day Resistance Program - Upper Focus": {
+          "total_movements": 8,
+          "subtype_coverage": {
+            "horizontal_push": 6,
+            "horizontal_pull": 2
+          },
+          "equipment_coverage": {
+            "unknown": 8
+          },
+          "region_coverage": {
+            "posterior upper": 4,
+            "anterior upper": 4
+          },
+          "expected_coverage_percentage": 50.0,
+          "missing_expected_subtypes": [
+            "vertical_pull",
+            "vertical_push"
+          ]
+        },
+        "5-Day Resistance Program - Lower Focus": {
+          "total_movements": 4,
+          "subtype_coverage": {
+            "squat": 4
+          },
+          "equipment_coverage": {
+            "unknown": 4
+          },
+          "region_coverage": {
+            "anterior lower": 4
+          },
+          "expected_coverage_percentage": 33.33333333333333,
+          "missing_expected_subtypes": [
+            "lunge",
+            "hinge"
+          ]
+        }
+      },
+      "execution_time": 0.061473,
+      "trace_id": null
+    },
+    {
+      "test_name": "5-Day Intelligent Day Spacing",
+      "success": false,
+      "errors": [
+        "Day spacing test failed: 2 validation errors for ProgramGenerationRequest\nuser_id\n  Field required [type=missing, input_value={'normalized_goals': {'pr..._level': 'intermediate'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\navailable_equipment\n  Field required [type=missing, input_value={'normalized_goals': {'pr..._level': 'intermediate'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing"
+      ],
+      "warnings": [],
+      "details": {},
+      "execution_time": 0.039107,
+      "trace_id": "e50a9c9e-1d07-46fc-b699-85e728ac57d1"
+    },
+    {
+      "test_name": "Primary Region Rotation",
+      "success": false,
+      "errors": [
+        "Region rotation test failed: 3 validation errors for ProgramGenerationRequest\nuser_id\n  Field required [type=missing, input_value={'normalized_goals': {'pr..._level': 'intermediate'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\navailable_equipment\n  Field required [type=missing, input_value={'normalized_goals': {'pr..._level': 'intermediate'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\nprogram_length_weeks\n  Input should be greater than or equal to 8 [type=greater_than_equal, input_value=4, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/greater_than_equal"
+      ],
+      "warnings": [],
+      "details": {},
+      "execution_time": 0.025633,
+      "trace_id": "f000b40b-6af0-4eb2-8578-1849373487ed"
+    },
+    {
+      "test_name": "Complete 5-Day Program",
+      "success": false,
+      "errors": [
+        "Complete program test failed: 2 validation errors for ProgramGenerationRequest\nuser_id\n  Field required [type=missing, input_value={'normalized_goals': {'pr..._level': 'intermediate'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\navailable_equipment\n  Field required [type=missing, input_value={'normalized_goals': {'pr..._level': 'intermediate'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing"
+      ],
+      "warnings": [],
+      "details": {},
+      "execution_time": 0.028371,
+      "trace_id": "32dba7bb-385b-48c1-8b13-27813a33a8f2"
+    },
+    {
+      "test_name": "Error Handling Integration",
+      "success": false,
+      "errors": [
+        "Error handling test failed: 'EnhancedErrorLogger' object has no attribute 'format_error_for_output'"
+      ],
+      "warnings": [],
+      "details": {
+        "logged_errors": [
+          {
+            "trace_id": "74d5e7a5-601b-4225-b995-acea3be16aff",
+            "error_code": "TEST_ERROR_001"
+          },
+          {
+            "trace_id": "2a27d0a9-dbbf-401a-8c02-a24418c24cc0",
+            "error_code": "DATABASE_CONNECTION_TEST"
+          }
+        ],
+        "retrieved_errors": 10
+      },
+      "execution_time": 0.001389,
+      "trace_id": null
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+# Alloy AI Fitness System Dependencies
+# Python version requirement
+python>=3.12
+
+# FastAPI and web framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Data validation and serialization
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Database and ORM
+sqlalchemy>=2.0.0
+asyncpg>=0.29.0
+
+# Configuration and utilities
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Logging and monitoring
+structlog>=23.0.0
+
+# Development and testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.25.0
+
+# Optional: For future database migrations
+alembic>=1.12.0
+
+# Optional: For enhanced logging
+sentry-sdk>=1.35.0
+
+# Web scraping
+playwright>=1.40.0
+tenacity>=8.2.0

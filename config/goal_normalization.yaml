@@ -1,0 +1,147 @@
+# Alloy AI Fitness System - Goal Normalization Configuration
+# This file defines the sigmoid parameters for hierarchical goal slider normalization
+
+# Sigmoid function parameters for goal influence calculation
+# Formula: sigmoid(x) = 1 / (1 + exp(-k * (x - x0)))
+# Where x is the slider value (0.0 to 1.0), k is steepness, x0 is midpoint
+
+slider_normalization:
+  # Primary slider: Strength vs Endurance
+  # 0.0 = pure endurance, 1.0 = pure strength
+  primary:
+    steepness: 6.0        # k parameter for sigmoid steepness
+    midpoint: 0.5         # x0 parameter for sigmoid midpoint
+    influence_range: 0.8   # Maximum influence on secondary sliders
+    
+  # Secondary sliders and their response to primary slider
+  secondary_sliders:
+    hypertrophy_fat_loss:
+      base_weight: 0.5
+      strength_influence: 0.3    # How much strength bias affects this slider
+      endurance_influence: -0.2   # How much endurance bias affects this slider
+      steepness: 4.0
+      midpoint: 0.5
+      
+    power_mobility:
+      base_weight: 0.5
+      strength_influence: 0.4     # Strength training benefits from power focus
+      endurance_influence: -0.3   # Endurance training conflicts with power
+      steepness: 5.0
+      midpoint: 0.5
+
+# Goal hierarchy weights for multi-level mapping
+# These weights are applied after slider normalization
+goal_hierarchy:
+  # Primary goal influence (from strength vs endurance slider)
+  primary_goal_weight: 0.6
+  
+  # Secondary goal influence (from other sliders)
+  secondary_goal_weight: 0.4
+  
+  # How much each secondary goal affects session selection
+  secondary_influence:
+    hypertrophy:
+      resistance_accessory: 0.8
+      resistance_circuits: 0.6
+      
+    fat_loss:
+      resistance_circuits: 0.7
+      hyrox_style: 0.8
+      cardio_only: 0.6
+      
+    power:
+      resistance_accessory: 0.7
+      
+    mobility:
+      mobility_only: 0.9
+      warmup_importance: 0.3
+      cooldown_importance: 0.3
+
+# Session type probability adjustments
+# These are applied as multipliers to the base goal-session mapping
+session_probability_modifiers:
+  # Based on primary strength vs endurance bias
+  strength_bias:
+    resistance_accessory: 1.2
+    resistance_circuits: 1.1
+    hyrox_style: 0.8
+    mobility_only: 0.7
+    cardio_only: 0.6
+    
+  endurance_bias:
+    resistance_accessory: 0.8
+    resistance_circuits: 1.1
+    hyrox_style: 1.3
+    mobility_only: 0.9
+    cardio_only: 1.4
+
+# Time allocation modifiers based on session type
+# These adjust the default 70% main block time allocation
+time_allocation_modifiers:
+  resistance_accessory:
+    main_block_multiplier: 1.0    # Standard 70%
+    warmup_multiplier: 1.0        # Standard 15%
+    cooldown_multiplier: 1.0      # Standard 15%
+    
+  resistance_circuits:
+    main_block_multiplier: 0.9    # Slightly less due to circuit efficiency
+    warmup_multiplier: 1.1        # More warmup needed
+    cooldown_multiplier: 1.0
+    
+  hyrox_style:
+    main_block_multiplier: 1.1    # More time for complex movements
+    warmup_multiplier: 1.2        # Extensive warmup needed
+    cooldown_multiplier: 1.1      # More cooldown for recovery
+    
+  mobility_only:
+    main_block_multiplier: 0.8    # Less intense, shorter sessions
+    warmup_multiplier: 1.3        # Longer warmup for mobility
+    cooldown_multiplier: 1.2      # Extended cooldown
+    
+  cardio_only:
+    main_block_multiplier: 1.0    # Standard cardio time
+    warmup_multiplier: 1.1        # Gradual warmup for cardio
+    cooldown_multiplier: 1.1      # Gradual cooldown
+
+# Program length recommendations based on goals
+program_length_recommendations:
+  # Primary goal influence on recommended program length
+  strength_focus:
+    8_weeks: 0.2    # 20% probability
+    10_weeks: 0.4   # 40% probability
+    12_weeks: 0.4   # 40% probability
+    
+  endurance_focus:
+    8_weeks: 0.4    # 40% probability
+    10_weeks: 0.4   # 40% probability
+    12_weeks: 0.2   # 20% probability
+    
+  # Secondary goal adjustments
+  hypertrophy_focus:
+    length_multiplier: 1.1    # Slightly longer programs
+    
+  fat_loss_focus:
+    length_multiplier: 0.9    # Slightly shorter, more intensive programs
+    
+  power_focus:
+    length_multiplier: 1.0    # Standard length
+    
+  mobility_focus:
+    length_multiplier: 1.2    # Longer programs for gradual improvement
+
+# Validation constraints
+validation:
+  slider_ranges:
+    min_value: 0.0
+    max_value: 1.0
+    
+  time_constraints:
+    min_days_per_week: 1
+    max_days_per_week: 7
+    min_session_time: 15    # minutes
+    max_session_time: 180   # minutes
+    
+  mathematical_constraints:
+    # Ensure slider normalization doesn't produce invalid values
+    min_normalized_value: 0.05   # Never completely eliminate a goal
+    max_normalized_value: 0.95   # Never completely dominate

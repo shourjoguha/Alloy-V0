@@ -1,0 +1,476 @@
+{
+  "timestamp": "2026-02-28T05:25:00Z",
+  "database_info": {
+    "container": "43664739cb71cd5f334347f8b4d5e1de4f7a1379c2449294687de3ab2f9f1454",
+    "database": "Jacked-DB",
+    "total_movements": 524
+  },
+  "coverage_stats": {
+    "total_movements": 524,
+    "mapped_movements": 177,
+    "unmapped_movements": 347,
+    "coverage_percentage": 33.78
+  },
+  "pattern_subtype_distribution": [
+    {
+      "pattern_subtype": "squat",
+      "count": "63",
+      "percentage": "12.02",
+      "original_patterns": "squat",
+      "disciplines": "athletic, cardio, crossfit, mobility, olympic, resistance training, stretch"
+    },
+    {
+      "pattern_subtype": "horizontal_pull",
+      "count": "62",
+      "percentage": "11.83",
+      "original_patterns": "horizontal_pull",
+      "disciplines": "resistance training"
+    },
+    {
+      "pattern_subtype": "horizontal_push",
+      "count": "52",
+      "percentage": "9.92",
+      "original_patterns": "horizontal_push",
+      "disciplines": "resistance training"
+    }
+  ],
+  "unmapped_movements": [
+    {
+      "name": "3/4 Sit-Up",
+      "original_pattern": "carry",
+      "discipline": "resistance training"
+    },
+    {
+      "name": "90/90 Hamstring",
+      "original_pattern": "hinge",
+      "discipline": "mobility"
+    },
+    {
+      "name": "Ab Wheel Rollout",
+      "original_pattern": "carry",
+      "discipline": "resistance training"
+    },
+    {
+      "name": "Adductor",
+      "original_pattern": "carry",
+      "discipline": "mobility"
+    },
+    {
+      "name": "Advanced Kettlebell Windmill",
+      "original_pattern": "carry",
+      "discipline": "resistance training"
+    },
+    {
+      "name": "Alternate Heel Touchers",
+      "original_pattern": "carry",
+      "discipline": "mobility"
+    },
+    {
+      "name": "Alternating Dumbbell Snatches",
+      "original_pattern": "hinge",
+      "discipline": "resistance training"
+    },
+    {
+      "name": "Ankle Cars",
+      "original_pattern": "carry",
+      "discipline": "mobility"
+    },
+    {
+      "name": "Ankle Circles",
+      "original_pattern": "carry",
+      "discipline": "mobility"
+    },
+    {
+      "name": "Ankle On The Knee",
+      "original_pattern": "hinge",
+      "discipline": "mobility"
+    },
+    {
+      "name": "Anterior Tibialis Smr",
+      "original_pattern": "carry",
+      "discipline": "mobility"
+    },
+    {
+      "name": "Anterior Tibialis-Smr",
+      "original_pattern": "carry",
+      "discipline": "resistance training"
+    },
+    {
+      "name": "Arm Circles",
+      "original_pattern": "carry",
+      "discipline": "mobility"
+    },
+    {
+      "name": "Atlas Stones",
+      "original_pattern": "hinge",
+      "discipline": "resistance training"
+    },
+    {
+      "name": "Back Flyes-With Bands",
+      "original_pattern": "carry",
+      "discipline": "resistance training"
+    }
+  ],
+  "movement_examples": {
+    "squat": [
+      {
+        "name": "Air Squat",
+        "original_pattern": "squat",
+        "discipline": "crossfit"
+      },
+      {
+        "name": "All Fours Quad Stretch",
+        "original_pattern": "squat",
+        "discipline": "stretch"
+      },
+      {
+        "name": "Alternate Leg Diagonal Bound",
+        "original_pattern": "squat",
+        "discipline": "mobility"
+      },
+      {
+        "name": "Back Squat",
+        "original_pattern": "squat",
+        "discipline": "resistance training"
+      },
+      {
+        "name": "Bench Jump",
+        "original_pattern": "squat",
+        "discipline": "athletic"
+      }
+    ],
+    "horizontal_pull": [
+      {
+        "name": "Barbell Row",
+        "original_pattern": "horizontal_pull",
+        "discipline": "resistance training"
+      },
+      {
+        "name": "Barbell Row (Lying, Medium)",
+        "original_pattern": "horizontal_pull",
+        "discipline": "resistance training"
+      },
+      {
+        "name": "Barbell Row (Supine)",
+        "original_pattern": "horizontal_pull",
+        "discipline": "resistance training"
+      },
+      {
+        "name": "Barbell Row From Floor",
+        "original_pattern": "horizontal_pull",
+        "discipline": "resistance training"
+      },
+      {
+        "name": "Barbell Skier",
+        "original_pattern": "horizontal_pull",
+        "discipline": "resistance training"
+      }
+    ],
+    "horizontal_push": [
+      {
+        "name": "Alternating Floor Press",
+        "original_pattern": "horizontal_push",
+        "discipline": "resistance training"
+      },
+      {
+        "name": "Barbell Bench Press",
+        "original_pattern": "horizontal_push",
+        "discipline": "resistance training"
+      },
+      {
+        "name": "Barbell Bench Press - Medium",
+        "original_pattern": "horizontal_push",
+        "discipline": "resistance training"
+      },
+      {
+        "name": "Barbell Guillotine Bench Press",
+        "original_pattern": "horizontal_push",
+        "discipline": "resistance training"
+      },
+      {
+        "name": "Barbell Incline Bench Press",
+        "original_pattern": "horizontal_push",
+        "discipline": "resistance training"
+      }
+    ]
+  },
+  "mapping_verification": {
+    "total_checks": 30,
+    "passed_checks": 9,
+    "checks": [
+      {
+        "check_type": "direct_pattern_mapping",
+        "original_pattern": "squat",
+        "expected_subtype": "squat",
+        "count": 63,
+        "status": "PASS"
+      },
+      {
+        "check_type": "direct_pattern_mapping",
+        "original_pattern": "hinge",
+        "expected_subtype": "hinge",
+        "count": 0,
+        "status": "WARNING"
+      },
+      {
+        "check_type": "direct_pattern_mapping",
+        "original_pattern": "lunge",
+        "expected_subtype": "lunge",
+        "count": 0,
+        "status": "WARNING"
+      },
+      {
+        "check_type": "direct_pattern_mapping",
+        "original_pattern": "horizontal_push",
+        "expected_subtype": "horizontal_push",
+        "count": 52,
+        "status": "PASS"
+      },
+      {
+        "check_type": "direct_pattern_mapping",
+        "original_pattern": "horizontal_pull",
+        "expected_subtype": "horizontal_pull",
+        "count": 62,
+        "status": "PASS"
+      },
+      {
+        "check_type": "direct_pattern_mapping",
+        "original_pattern": "vertical_push",
+        "expected_subtype": "vertical_push",
+        "count": 0,
+        "status": "WARNING"
+      },
+      {
+        "check_type": "direct_pattern_mapping",
+        "original_pattern": "vertical_pull",
+        "expected_subtype": "vertical_pull",
+        "count": 0,
+        "status": "WARNING"
+      },
+      {
+        "check_type": "direct_pattern_mapping",
+        "original_pattern": "rotation",
+        "expected_subtype": "rotation",
+        "count": 0,
+        "status": "WARNING"
+      },
+      {
+        "check_type": "direct_pattern_mapping",
+        "original_pattern": "carry",
+        "expected_subtype": "carry",
+        "count": 0,
+        "status": "WARNING"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%jump%",
+        "expected_subtype": "jump",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%leap%",
+        "expected_subtype": "leap",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%hop%",
+        "expected_subtype": "hop",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%bound%",
+        "expected_subtype": "bounding",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%explosive%",
+        "expected_subtype": "explosive",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%farmer%",
+        "expected_subtype": "farmer_carry",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%waiter%",
+        "expected_subtype": "waiter_carry",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%suitcase%",
+        "expected_subtype": "suitcase_carry",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%run%",
+        "expected_subtype": "run",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%row%",
+        "expected_subtype": "row",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%bike%",
+        "expected_subtype": "bike",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%cycle%",
+        "expected_subtype": "cycle",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%swim%",
+        "expected_subtype": "swim",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%burpee%",
+        "expected_subtype": "burpee",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%turkish%",
+        "expected_subtype": "turkish_get_up",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%bear%crawl%",
+        "expected_subtype": "bear_crawl",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%crab%walk%",
+        "expected_subtype": "crab_walk",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%stretch%",
+        "expected_subtype": "stretch",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%activation%",
+        "expected_subtype": "activation",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%dynamic%",
+        "expected_subtype": "dynamic_warmup",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%static%",
+        "expected_subtype": "static_stretch",
+        "count": 0,
+        "status": "INFO"
+      },
+      {
+        "check_type": "name_based_mapping",
+        "name_pattern": "%foam%",
+        "expected_subtype": "foam_roll",
+        "count": 0,
+        "status": "INFO"
+      }
+    ]
+  },
+  "discipline_breakdown": [
+    {
+      "discipline": "athletic",
+      "pattern_subtype": "squat",
+      "count": "3",
+      "percentage_within_discipline": "100.00"
+    },
+    {
+      "discipline": "cardio",
+      "pattern_subtype": "squat",
+      "count": "2",
+      "percentage_within_discipline": "100.00"
+    },
+    {
+      "discipline": "crossfit",
+      "pattern_subtype": "squat",
+      "count": "1",
+      "percentage_within_discipline": "100.00"
+    },
+    {
+      "discipline": "mobility",
+      "pattern_subtype": "squat",
+      "count": "1",
+      "percentage_within_discipline": "100.00"
+    },
+    {
+      "discipline": "olympic",
+      "pattern_subtype": "squat",
+      "count": "3",
+      "percentage_within_discipline": "100.00"
+    },
+    {
+      "discipline": "resistance training",
+      "pattern_subtype": "horizontal_pull",
+      "count": "62",
+      "percentage_within_discipline": "54.39"
+    },
+    {
+      "discipline": "resistance training",
+      "pattern_subtype": "horizontal_push",
+      "count": "52",
+      "percentage_within_discipline": "45.61"
+    },
+    {
+      "discipline": "resistance training",
+      "pattern_subtype": "squat",
+      "count": "53",
+      "percentage_within_discipline": "100.00"
+    },
+    {
+      "discipline": "stretch",
+      "pattern_subtype": "squat",
+      "count": "1",
+      "percentage_within_discipline": "100.00"
+    }
+  ]
+}

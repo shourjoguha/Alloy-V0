@@ -1,0 +1,1022 @@
+# ============================================================================
+# PROGRAM BUILDING CONFIGURATION
+# ============================================================================
+# This configuration controls how workout programs are generated based on
+# user goals, movement patterns, and training principles.
+#
+# Hierarchy: baseline values + environment multipliers/offsets
+# Resolution Logic: Baseline values are modified by applicable multipliers
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Environment Configuration
+# ----------------------------------------------------------------------------
+default_environment: "production"
+
+environments:
+  development:
+    overrides:
+      rest_time:
+        base_multiplier: 1.0
+      
+  staging:
+    overrides:
+      rest_time:
+        base_multiplier: 1.0
+      
+  production:
+    overrides:
+      rest_time:
+        base_multiplier: 1.0
+
+# ----------------------------------------------------------------------------
+# Day Type Mix by Goal
+# ----------------------------------------------------------------------------
+# Defines percentage distribution of different day types based on user goals.
+# Percentages must sum to 100 for each goal.
+#
+# Day Types:
+# - resistance: Traditional resistance training sessions
+# - hyrox: Hyrox-specific training sessions
+# - cardio: Cardiovascular training sessions
+# - mobility: Mobility and flexibility sessions
+# - recovery: Active recovery sessions (optional)
+
+day_type_mix:
+  strength:
+    resistance: 70
+    hyrox: 20
+    mobility: 10
+    cardio: 0
+    recovery: 0
+  
+  hypertrophy:
+    resistance: 80
+    hyrox: 10
+    mobility: 10
+    cardio: 0
+    recovery: 0
+  
+  endurance:
+    resistance: 40
+    hyrox: 30
+    cardio: 20
+    mobility: 10
+    recovery: 0
+  
+  fat_loss:
+    resistance: 50
+    hyrox: 25
+    cardio: 15
+    mobility: 10
+    recovery: 0
+  
+  general_fitness:
+    resistance: 45
+    hyrox: 25
+    cardio: 15
+    mobility: 15
+    recovery: 0
+
+# ----------------------------------------------------------------------------
+# Rest Requirements Between Sessions
+# ----------------------------------------------------------------------------
+# Minimum rest hours required between different types of sessions.
+# Matrix format: previous_day_type x next_day_type = minimum_hours
+
+rest_requirements:
+  # Baseline rest hours for each intensity level
+  baseline_hours:
+    high_intensity: 24
+    moderate_intensity: 12
+    low_intensity: 6
+    minimal: 0
+
+  # Session type intensity classifications
+  session_intensity:
+    resistance: "high_intensity"
+    hyrox: "moderate_intensity"
+    cardio: "moderate_intensity"
+    mobility: "minimal"
+    recovery: "minimal"
+
+  # Movement type intensity classifications (for movement-specific rest)
+  movement_intensity:
+    compound: "high_intensity"
+    accessory: "moderate_intensity"
+    isolation: "low_intensity"
+
+  # Overrides for specific transitions when baseline doesn't work
+  overrides:
+    - from: "resistance"
+      to: "resistance"
+      hours: 24
+      reason: "Back-to-back resistance days need maximum recovery"
+
+    - from: "resistance"
+      to: "hyrox"
+      hours: 12
+      reason: "Resistance to Hyrox transition needs moderate rest"
+
+    - from: "hyrox"
+      to: "resistance"
+      hours: 12
+      reason: "Hyrox to resistance transition needs moderate rest"
+
+    - from: "hyrox"
+      to: "hyrox"
+      hours: 24
+      reason: "Back-to-back Hyrox sessions need full recovery"
+
+    - from: "cardio"
+      to: "resistance"
+      hours: 6
+      reason: "Cardio to resistance transition needs minimal rest"
+
+    - from: "resistance"
+      to: "cardio"
+      hours: 6
+      reason: "Resistance to cardio transition needs minimal rest"
+
+# ----------------------------------------------------------------------------
+# Resistance Training Split
+# ----------------------------------------------------------------------------
+# Time allocation between compound block and superset block within resistance days.
+# Expressed as percentage of total resistance training time.
+
+resistance_split:
+  strength:
+    compound_block: 60
+    superset_block: 30
+    accessory_block: 10
+  
+  hypertrophy:
+    compound_block: 60
+    superset_block: 30
+    accessory_block: 10
+  
+  endurance:
+    compound_block: 40
+    superset_block: 40
+    accessory_block: 20
+
+# ----------------------------------------------------------------------------
+# Antagonist Pattern Pairs
+# ----------------------------------------------------------------------------
+# Pairs of movement patterns that work opposing muscle groups.
+# Used to create effective superset combinations.
+
+antagonist_pattern_pairs:
+  - primary_pattern: "push"
+    secondary_pattern: "pull"
+    priority: 1
+  
+  - primary_pattern: "squat"
+    secondary_pattern: "hinge"
+    priority: 1
+  
+  - primary_pattern: "horizontal_push"
+    secondary_pattern: "horizontal_pull"
+    priority: 2
+  
+  - primary_pattern: "vertical_push"
+    secondary_pattern: "vertical_pull"
+    priority: 2
+  
+  - primary_pattern: "rotation"
+    notes: "Rotation can be paired with any antagonist movement"
+    can_pair_with_any: true
+
+# ----------------------------------------------------------------------------
+# Rest Time Configuration
+# ----------------------------------------------------------------------------
+# Configurable rest times using baseline + multiplier approach.
+#
+# Resolution Logic:
+# 1. Start with baseline rest time for execution format
+# 2. Find all applicable multipliers based on block type, day type, goal, movement type
+# 3. Multiply baseline by all applicable multipliers
+# 4. Apply environment multiplier if defined
+
+rest_time:
+  # Baseline times in seconds for each execution format
+  baseline:
+    standalone_sets:
+      seconds: 90
+      description: "Standard rest between standalone exercise sets"
+
+    supersets:
+      seconds: 60
+      description: "Rest between supersets (after completing both exercises)"
+
+    circuits:
+      seconds: 45
+      description: "Rest between circuit rounds"
+
+    intervals:
+      seconds: 30
+      description: "Rest between interval rounds (e.g., HIIT, Hyrox)"
+
+  # Multipliers for different factors (applied to baseline)
+  multipliers:
+    goal:
+      strength: 2.0
+      hypertrophy: 1.0
+      endurance: 0.67
+      fat_loss: 1.0
+      general_fitness: 1.0
+
+    movement_type:
+      compound: 1.5
+      accessory: 1.0
+      isolation: 0.67
+      superset: 0.67
+      interval: 0.5
+
+    block_type:
+      warmup: 0.5
+      main: 1.0
+      cooldown: 0.33
+
+    day_type:
+      resistance: 1.0
+      hyrox: 0.75
+      cardio: 0.0
+      mobility: 0.33
+
+    # Additional factors for fine-tuning
+    equipment_load:
+      heavy: 1.2
+      moderate: 1.0
+      light: 0.8
+
+  # Hard overrides when calculation doesn't work (highest priority)
+  overrides:
+    - context: "strength_resistance_compound_main_standalone_sets"
+      seconds: 300
+      reason: "Heavy compound strength needs maximum recovery"
+
+    - context: "endurance_hrox_interval_main_intervals"
+      seconds: 45
+      reason: "Hyrox intervals have specific rest requirements"
+
+  # Rules for multiplier combination
+  combination_rules:
+    method: "multiplicative"
+    min_multiplier: 0.0
+    max_multiplier: 3.0
+    description: "Multiply all applicable multipliers together, clamped to range"
+
+# ----------------------------------------------------------------------------
+# Rep/Set Range Configuration
+# ----------------------------------------------------------------------------
+# Configurable rep and set ranges using baseline + multiplier approach.
+# Ranges are inclusive: [min, max]
+
+rep_set_ranges:
+  # Baseline ranges for each goal
+  baseline:
+    strength:
+      rep_min: 1
+      rep_max: 6
+      set_min: 3
+      set_max: 6
+
+    hypertrophy:
+      rep_min: 8
+      rep_max: 12
+      set_min: 3
+      set_max: 4
+
+    endurance:
+      rep_min: 15
+      rep_max: 25
+      set_min: 2
+      set_max: 4
+
+    fat_loss:
+      rep_min: 8
+      rep_max: 15
+      set_min: 3
+      set_max: 4
+
+    general_fitness:
+      rep_min: 8
+      rep_max: 12
+      set_min: 3
+      set_max: 4
+
+  # Adjustments for block_type (offsets to baseline)
+  block_type_adjustments:
+    warmup:
+      rep_offset: 2
+      set_offset: -2
+
+    main:
+      rep_offset: 0
+      set_offset: 0
+
+    cooldown:
+      rep_offset: 4
+      set_offset: -2
+
+  # Adjustments for day_type (offsets to baseline)
+  day_type_adjustments:
+    resistance:
+      rep_offset: 0
+      set_offset: 0
+
+    hyrox:
+      rep_offset: 2
+      set_offset: -1
+
+    cardio:
+      rep_offset: 12
+      set_offset: -1
+
+    mobility:
+      rep_offset: 2
+      set_offset: -1
+
+  # Hard overrides when adjustment doesn't work
+  overrides:
+    - context: "strength_main_resistance"
+      rep_min: 1
+      rep_max: 5
+      set_min: 4
+      set_max: 6
+
+    - context: "hypertrophy_main_resistance"
+      rep_min: 6
+      rep_max: 10
+      set_min: 3
+      set_max: 4
+
+  # Validation rules
+  constraints:
+    min_reps: 1
+    max_reps: 50
+    min_sets: 1
+    max_sets: 10
+
+# ----------------------------------------------------------------------------
+# TRAINING DAY SPACING PATTERNS
+# ----------------------------------------------------------------------------
+# Optimal day-of-week placement for different training frequencies.
+# These patterns are optimized for recovery and training frequency.
+# Days are numbered 1-7 (Monday=1, Sunday=7).
+
+training_day_spacing_patterns:
+  1: [4]  # Wednesday (optimal mid-week)
+  2: [2, 6]  # Tuesday, Saturday (48h+ recovery)
+  3: [1, 3, 5]  # Monday, Wednesday, Friday (48h+ recovery)
+  4: [1, 3, 5, 6]  # Monday, Wednesday, Friday, Saturday (24h+ recovery)
+  5: [1, 2, 4, 5, 6]  # Monday, Tuesday, Thursday, Friday, Saturday (optimal spacing)
+  6: [1, 2, 3, 5, 6, 7]  # All except Thursday (24h+ recovery)
+  7: [1, 2, 3, 4, 5, 6, 7]  # All days
+
+# ----------------------------------------------------------------------------
+# DAY TYPE DETERMINATION
+# ----------------------------------------------------------------------------
+# Logic for determining which day type to assign to a training day.
+# Based on pattern exposure history and goal alignment.
+
+day_type_determination:
+  pattern_exposure_thresholds:
+    min_exposure_before_rotation: 2
+    max_consecutive_same_pattern: 4
+    variety_window_days: 7
+  
+  goal_alignment_scores:
+    strength:
+      resistance: 10
+      hyrox: 6
+      cardio: 3
+      mobility: 5
+      recovery: 4
+    
+    hypertrophy:
+      resistance: 10
+      hyrox: 5
+      cardio: 4
+      mobility: 5
+      recovery: 4
+    
+    endurance:
+      resistance: 6
+      hyrox: 9
+      cardio: 10
+      mobility: 6
+      recovery: 5
+    
+    fat_loss:
+      resistance: 8
+      hyrox: 8
+      cardio: 9
+      mobility: 6
+      recovery: 5
+    
+    general_fitness:
+      resistance: 8
+      hyrox: 8
+      cardio: 7
+      mobility: 8
+      recovery: 6
+  
+  pattern_fatigue:
+    enabled: true
+    recovery_days_after_heavy_pattern: 2
+    fatigue_accumulation_rate: 1.0
+    fatigue_decay_rate: 0.5
+  
+  selection_priority:
+    - rule: "respect_rest_requirements"
+      priority: 100
+    
+    - rule: "align_with_goal_mix"
+      priority: 90
+    
+    - rule: "maintain_pattern_variety"
+      priority: 80
+    
+    - rule: "consider_recent_history"
+      priority: 70
+
+# ----------------------------------------------------------------------------
+# PATTERN SUBTYPE CATEGORIES
+# ----------------------------------------------------------------------------
+# Mappings from high-level categories to specific pattern_subtypes.
+# This eliminates hardcoded pattern_subtype values from Python code.
+# Single source of truth for movement selection logic.
+
+pattern_subtype_categories:
+  push:
+    - horizontal_push
+    - vertical_push
+  
+  pull:
+    - horizontal_pull
+    - vertical_pull
+  
+  lower:
+    - squat
+    - hinge
+    - lunge
+  
+  core:
+    - rotation
+    - carry
+    - core
+    - anti_rotation
+  
+  cardio:
+    - run
+    - row
+    - bike
+    - swim
+    - elliptical
+  
+  conditioning:
+    - conditioning
+    - circuit
+    - interval
+    - hiit
+  
+  mobility:
+    - mobility
+    - stretch
+    - activation
+    - dynamic_warmup
+    - static_stretch
+    - foam_roll
+    - smr
+  
+  athletic:
+    - plyometric
+    - isometric
+  
+  specialty:
+    - burpee
+    - turkish_get_up
+    - bear_crawl
+    - crab_walk
+  
+  sled:
+    - sled_push
+    - sled_pull
+    - sled_drag
+  
+  carry:
+    - farmer_carry
+    - waiter_carry
+    - suitcase_carry
+
+# ----------------------------------------------------------------------------
+# REGION OPTIONS
+# ----------------------------------------------------------------------------
+# Available regions for rotation logic.
+# Grouped by body area for intelligent upper/lower body rotation.
+
+region_options:
+  upper:
+    - anterior upper
+    - posterior upper
+    - shoulder
+  
+  lower:
+    - anterior lower
+    - posterior lower
+
+# ----------------------------------------------------------------------------
+# SESSION REGION PRIORITIES
+# ----------------------------------------------------------------------------
+# Primary region priorities for each session type.
+# Used for intelligent upper/lower body rotation in resistance training.
+# Lower values indicate higher priority (first in list gets chosen first).
+
+session_region_priorities:
+  resistance_accessory:
+    - lower
+    - upper
+    - full
+  
+  resistance_circuits:
+    - full
+    - lower
+    - upper
+  
+  hyrox_style:
+    - full
+  
+  mobility_only:
+    - full
+  
+  cardio_only:
+    - full
+
+# ----------------------------------------------------------------------------
+# SESSION TYPE TO PATTERN SUBTYPE MAPPING
+# ----------------------------------------------------------------------------
+# Which pattern_subtypes to use for each session type.
+# Eliminates hardcoded SESSION_SUBTYPES dictionary from Python code.
+
+session_subtype_mapping:
+  resistance_accessory:
+    compound_block:
+      - squat
+      - hinge
+      - horizontal_push
+      - horizontal_pull
+    
+    superset_block:
+      - vertical_push
+      - vertical_pull
+      - lunge
+      - rotation
+      - carry
+      - core
+      - anti_rotation
+  
+  resistance_circuits:
+    compound_block:
+      - squat
+      - hinge
+      - horizontal_push
+      - horizontal_pull
+    
+    superset_block:
+      - vertical_push
+      - vertical_pull
+      - lunge
+      - rotation
+  
+  hyrox_style:
+    compound_strength:
+      - squat
+      - hinge
+      - horizontal_push
+      - horizontal_pull
+    
+    carries:
+      - farmer_carry
+      - suitcase_carry
+      - waiter_carry
+    
+    cardio:
+      - run
+      - row
+      - bike
+    
+    sled_work:
+      - sled_push
+      - sled_pull
+      - sled_drag
+  
+  mobility_only:
+    - mobility
+    - stretch
+    - activation
+    - dynamic_warmup
+    - static_stretch
+    - foam_roll
+    - smr
+  
+  cardio_only:
+    - run
+    - row
+    - bike
+    - swim
+    - elliptical
+    - conditioning
+    - circuit
+    - interval
+    - hiit
+  
+  core_conditioning:
+    compound_block:
+      - core
+      - anti_rotation
+      - rotation
+      - carry
+    superset_block:
+      - core
+      - anti_rotation
+      - conditioning
+      - circuit
+
+# ----------------------------------------------------------------------------
+# MOVEMENT ENUM VALUES
+# ----------------------------------------------------------------------------
+# Valid enum values for movement database columns.
+# Single source of truth for enum validation in Python code.
+# Used to validate values before database queries to prevent invalid data.
+
+movement_enum_values:
+  primary_muscle:
+    - quadriceps
+    - hamstrings
+    - glutes
+    - calves
+    - chest
+    - lats
+    - upper_back
+    - rear_delts
+    - front_delts
+    - side_delts
+    - biceps
+    - triceps
+    - forearms
+    - core
+    - obliques
+    - lower_back
+    - hip_flexors
+    - adductors
+    - abductors
+    - full_body
+
+  primary_region:
+    - anterior lower
+    - posterior lower
+    - shoulder
+    - anterior upper
+    - posterior upper
+    - full body
+    - lower body
+    - upper body
+    - core
+
+  metric_type:
+    - reps
+    - time
+    - distance
+    - weight
+
+  spinal_compression:
+    - none
+    - low
+    - medium
+    - high
+
+  discipline:
+    - resistance training
+    - endurance
+    - power
+    - mobility
+    - mixed
+    - olympic
+    - crossfit
+    - athletic
+    - stretch
+    - cardio
+
+  pattern:
+    - squat
+    - hinge
+    - lunge
+    - carry
+    - rotation
+    - core
+    - mobility
+    - horizontal_push
+    - horizontal_pull
+    - vertical_push
+    - vertical_pull
+
+# ----------------------------------------------------------------------------
+# CIRCUIT TABLES INTEGRATION
+# ----------------------------------------------------------------------------
+# Placeholder structure for circuit_* table integration.
+# References pre-defined circuits from database tables.
+
+circuit_tables:
+  enabled: true
+  
+  circuit_patterns:
+    warmup_circuits:
+      - pattern_id: "general_warmup"
+        duration_minutes: 5
+        exercise_count: 4
+      
+      - pattern_id: "upper_body_warmup"
+        duration_minutes: 5
+        exercise_count: 3
+    
+    hyrox_circuits:
+      - pattern_id: "hyrox_ski_row"
+        duration_minutes: 10
+        exercise_count: 2
+      
+      - pattern_id: "hyrox_run_burpee"
+        duration_minutes: 12
+        exercise_count: 2
+    
+    cardio_circuits:
+      - pattern_id: "hiit_intervals"
+        duration_minutes: 20
+        exercise_count: 4
+    
+    mobility_circuits:
+      - pattern_id: "full_body_mobility"
+        duration_minutes: 10
+        exercise_count: 6
+  
+  parameter_overrides:
+    goal:
+      strength:
+        intensity_multiplier: 0.8
+        rest_between_exercises: 60
+      
+      endurance:
+        intensity_multiplier: 1.2
+        rest_between_exercises: 30
+    
+    block_type:
+      warmup:
+        intensity_multiplier: 0.6
+        rest_between_exercises: 30
+      
+      main:
+        intensity_multiplier: 1.0
+        rest_between_exercises: 45
+      
+      cooldown:
+        intensity_multiplier: 0.4
+        rest_between_exercises: 60
+  
+  selection_logic:
+    match_primary_pattern: true
+    randomness_factor: 0.2
+    min_days_between_repeat: 3
+    max_duration_minutes: 30
+
+# ----------------------------------------------------------------------------
+# EQUIPMENT MAPPING
+# ----------------------------------------------------------------------------
+# From equipment names to database columns.
+# Used for building SQL WHERE clauses.
+
+equipment_mapping:
+  bodyweight: "bodyweight_possible"
+  dumbbell: "dumbbell_possible"
+  kettlebell: "kettlebell_possible"
+  barbell: "barbell_possible"
+  machine: "machine_possible"
+  band: "band_possible"
+  plate_or_med_ball: "plate_or_med_ball_possible"
+
+# ----------------------------------------------------------------------------
+# MOVEMENT QUERY DISCIPLINES
+# ----------------------------------------------------------------------------
+# Discipline mappings for movement query service methods.
+# Externalized from enhanced_movement_query_service_v2.py to eliminate hardcoded lists.
+
+movement_query_disciplines:
+  warmup:
+    - mobility
+    - stretch
+    - athletic
+  
+  cooldown:
+    - mobility
+    - stretch
+  
+  strength:
+    - resistance training
+  
+  accessory:
+    - resistance training
+  
+  hyrox_carries:
+    - cardio
+    - resistance training
+  
+  mobility:
+    - mobility
+    - stretch
+    - athletic
+  
+  cardio:
+    - cardio
+    - athletic
+  
+  olympic:
+    - olympic
+
+  # Session type to discipline mapping for _get_discipline_filter
+  session_discipline_mapping:
+    resistance_accessory:
+      - resistance training
+    resistance_circuits:
+      - resistance training
+      - crossfit
+    hyrox_style:
+      - resistance training
+      - cardio
+      - athletic
+    mobility_only:
+      - mobility
+      - stretch
+    cardio_only:
+      - cardio
+      - athletic
+
+# ----------------------------------------------------------------------------
+# DEFAULT PATTERN SUBTYPES
+# ----------------------------------------------------------------------------
+# Default pattern subtypes used as fallback when config values are missing.
+# These are used when no specific subtypes are configured for a query type.
+# Eliminates hardcoded fallback values from Python code.
+
+default_pattern_subtypes:
+  # General fallback for balanced movement selection
+  balanced:
+    - squat
+    - hinge
+    - horizontal_push
+    - horizontal_pull
+  
+  # Strength section defaults (compound movements)
+  strength:
+    - squat
+    - hinge
+    - horizontal_push
+    - horizontal_pull
+  
+  # Accessory section defaults (isolation and specialty movements)
+  accessory:
+    - vertical_push
+    - vertical_pull
+    - rotation
+    - lunge
+  
+  # Carry movements (for Hyrox and functional training)
+  carry:
+    - farmer_carry
+    - suitcase_carry
+    - waiter_carry
+  
+  # Sled movements (for Hyrox and conditioning)
+  sled:
+    - sled_push
+    - sled_pull
+    - sled_drag
+
+# ----------------------------------------------------------------------------
+# ACCESSORY MOVEMENT PRIORITY
+# ----------------------------------------------------------------------------
+# Priority-based ordering for accessory movement selection.
+# Controls how movements are ranked in the ORDER BY clause.
+# Lower priority values are selected first (higher priority).
+#
+# This eliminates hardcoded ORDER BY CASE statements from Python code.
+# Makes movement prioritization configurable without code changes.
+
+accessory_movement_priority:
+  - priority: 1
+    condition: "vertical movements"
+    condition_type: "pattern_subtype"
+    subtypes:
+      - vertical_push
+      - vertical_pull
+    description: "Prioritize vertical push/pull movements first"
+  
+  - priority: 2
+    condition: "isolation movements"
+    condition_type: "compound_flag"
+    value: false
+    description: "Prioritize non-compound (isolation) movements second"
+  
+  - priority: 3
+    condition: "compound movements"
+    condition_type: "compound_flag"
+    value: true
+    description: "Compound movements are lowest priority for accessory section"
+
+# ----------------------------------------------------------------------------
+# OLYMPIC RESTRICTIONS
+# ----------------------------------------------------------------------------
+# User level requirements and allowed session types for olympic movements.
+
+olympic_restrictions:
+  min_user_level: "intermediate"
+  allowed_session_types:
+    - resistance_accessory
+    - resistance_circuits
+  disciplines:
+    - olympic
+
+# ----------------------------------------------------------------------------
+# VALIDATION RULES
+# ----------------------------------------------------------------------------
+validation:
+  day_type_mix_sum: 100
+  rest_time:
+    min_seconds: 0
+    max_seconds: 600
+  rep_ranges:
+    min_reps: 1
+    max_reps: 50
+  set_ranges:
+    min_sets: 1
+    max_sets: 10
+  multipliers:
+    min_multiplier: 0.0
+    max_multiplier: 10.0
+  pattern_exposure:
+    min_threshold: 1
+    max_threshold: 10
+    max_consecutive: 7
+    variety_window_min: 3
+    variety_window_max: 14
+  
+  # Validation thresholds for program generation requests
+  request_validation:
+    program_length_weeks:
+      min: 8
+      max: 12
+    days_per_week:
+      min: 1
+      max: 7
+    normalized_goals:
+      min_value: 0.0
+      max_value: 1.0
+    required_goal_keys:
+      - primary_strength
+      - normalized_hypertrophy_fat_loss
+      - normalized_power_mobility
+      - strength_bias
+      - endurance_bias
+
+# ----------------------------------------------------------------------------
+# METADATA
+# ----------------------------------------------------------------------------
+metadata:
+  config_name: "program_building_config"
+  version: "1.0.0"
+  last_updated: "2026-02-28"
+  description: |
+    Comprehensive configuration for workout program building including
+    day type allocation, rest requirements, training splits, pattern
+    subtype mappings, and baseline + multiplier resolution logic.
+  changelog:
+    - version: "1.0.0"
+      date: "2026-02-28"
+      changes:
+        - "Initial configuration schema"
+        - "Implemented baseline + multiplier approach for rest times and rep/set ranges"
+        - "Added antagonist pattern pairs for superset creation"
+        - "Configured day type mix by goal"
+        - "Added rest requirement matrices"
+        - "Integrated circuit table placeholders"
+        - "Externalized pattern_subtype_categories from Python code"
+        - "Externalized session_subtype_mapping from Python code"
+        - "Externalized region_options from enhanced_program_service.py"
+        - "Added request_validation section with program length, days per week, and normalized goals thresholds"
+        - "Externalized training_day_spacing_patterns from enhanced_program_service.py (optimal day-of-week placement)"
+        - "Externalized session_region_priorities from enhanced_program_service.py"
+        - "Removed rank-based hierarchy system in favor of baseline + multiplier approach"
+        - "Migrated all hardcoded values from service files to configuration"
+        - "Added environment-specific overrides for rest_time multipliers"
+        - "Implemented hierarchical resolution logic: baseline values modified by environment multipliers"
+        - "Externalized movement_query_disciplines from enhanced_movement_query_service_v2.py (15+ discipline lists)"
+        - "Externalized default_pattern_subtypes from enhanced_movement_query_service_v2.py (4 locations)"
