@@ -4,8 +4,10 @@ Implements intelligent day spacing and primary region rotation logic.
 """
 
 import random
+import uuid
 from typing import Dict, List, Optional, Any, Set
 import logging
+from datetime import datetime
 
 from models.enums import (
     SessionType, BlockType, EquipmentType, PrimaryRegion,
@@ -30,10 +32,13 @@ class EnhancedProgramService:
         
         Args:
             config_loader: Optional ConfigLoader instance. If None, creates default instance
-            db_session: Optional database session for movement queries (currently unused)
+            db_session: Optional database session for movement queries and Hyrox workout selection
             environment: Environment name (development, staging, production)
         """
         self.config_loader = config_loader or ConfigLoader(environment=environment)
+        self.db_session = db_session
+        self._hyrox_config = self.config_loader.get_hyrox_workout_selection_config()
+        self._hyrox_service = None  # Lazy-initialized when DB session is available
     
     # ========================================================================
     # Day Type Mix Methods
@@ -384,8 +389,6 @@ class EnhancedProgramService:
         else:  # Sunday or other
             return [PrimaryRegion.CORE]
     
-    # ... (rest of the methods from original ProgramService, updated to use enhanced logic)
-    
     async def generate_program_skeleton(self, request: ProgramGenerationRequest) -> ProgramGenerationResponse:
         """
         Generate a complete program skeleton with intelligent spacing and region rotation.
@@ -443,6 +446,7 @@ class EnhancedProgramService:
             
             # Get training days per week
             days_per_week = request.availability.get("days_per_week", 3)
+            default_time = request.availability.get("time_allocation", {}).get("default_time_per_day", 60)
             
             # Generate intelligent training day distribution
             training_days = self._get_intelligent_training_days(
@@ -457,20 +461,45 @@ class EnhancedProgramService:
                 days_per_week
             )
             
-            # Create program skeleton
-            # This is a simplified implementation - full version would create
-            # complete ProgramSkeleton with all blocks, weeks, and sessions
+            # Generate unique IDs
+            program_id = f"prog_{uuid.uuid4().hex[:12]}"
+            
+            # Determine secondary goals based on normalized goals
+            secondary_goals = self._determine_secondary_goals(request.normalized_goals, primary_goal)
+            
+            # Generate program name based on goal (from config with fallback)
+            program_name = self._get_program_name(primary_goal)
+            
+            # Calculate total sessions
+            total_sessions = days_per_week * request.program_length_weeks
+            
+            # Create training blocks (split program into phases)
+            training_blocks = self._create_training_blocks(
+                request=request,
+                primary_goal=primary_goal,
+                days_per_week=days_per_week,
+                training_days=training_days,
+                session_types_per_week=session_types_per_week,
+                default_time=default_time
+            )
+            
+            # Create program skeleton with all required fields
             program_skeleton = ProgramSkeleton(
-                program_id="temp_id",  # Would be generated
-                user_id="temp_user_id",  # From request
-                program_length_weeks=request.program_length_weeks,
-                training_blocks=[],
-                constraints=self._get_block_constraints(request, primary_goal)
+                program_id=program_id,
+                user_id=request.user_id,
+                program_name=program_name,
+                total_weeks=request.program_length_weeks,
+                total_sessions=total_sessions,
+                training_blocks=training_blocks,
+                primary_goal=primary_goal,
+                secondary_goals=secondary_goals,
+                created_at=datetime.utcnow()
             )
             
             logger.info(
-                f"Created program skeleton: {days_per_week} days/week, "
-                f"{request.program_length_weeks} weeks, goal={primary_goal}"
+                f"Created program skeleton: {program_id}, {days_per_week} days/week, "
+                f"{request.program_length_weeks} weeks, goal={primary_goal}, "
+                f"total_sessions={total_sessions}"
             )
             
             return program_skeleton
@@ -478,6 +507,432 @@ class EnhancedProgramService:
         except Exception as e:
             logger.error(f"Failed to create program skeleton: {e}", exc_info=True)
             raise
+    
+    def _determine_secondary_goals(self, normalized_goals: Dict[str, float], primary_goal: str) -> List[str]:
+        """
+        Determine secondary goals based on normalized goal values.
+        
+        Args:
+            normalized_goals: Dictionary of goal scores
+            primary_goal: The primary goal already determined
+            
+        Returns:
+            List of secondary goal strings
+        """
+        secondary = []
+        
+        # Add secondary goals based on slider values
+        hypertrophy_score = normalized_goals.get("normalized_hypertrophy_fat_loss", 0.5)
+        power_score = normalized_goals.get("normalized_power_mobility", 0.5)
+        
+        if hypertrophy_score > 0.6 and primary_goal != "hypertrophy":
+            secondary.append("hypertrophy")
+        elif hypertrophy_score < 0.4 and primary_goal != "fat_loss":
+            secondary.append("fat_loss")
+        
+        if power_score > 0.6:
+            secondary.append("power")
+        elif power_score < 0.4:
+            secondary.append("mobility")
+        
+        # Ensure we have at least one secondary goal
+        if not secondary:
+            secondary.append("general_conditioning")
+        
+        return secondary
+    
+    def _create_training_blocks(
+        self,
+        request: ProgramGenerationRequest,
+        primary_goal: str,
+        days_per_week: int,
+        training_days: List[int],
+        session_types_per_week: List[str],
+        default_time: int
+    ) -> List[ProgramBlock]:
+        """
+        Create training blocks for the program.
+        
+        Splits the program into 2-4 week blocks with progressive focus.
+        """
+        blocks = []
+        total_weeks = request.program_length_weeks
+        
+        # Determine block structure based on program length
+        if total_weeks <= 8:
+            block_weeks = [4, 4] if total_weeks == 8 else [4, total_weeks - 4]
+        elif total_weeks <= 10:
+            block_weeks = [4, 3, 3]
+        else:
+            block_weeks = [4, 4, total_weeks - 8]
+        
+        # Block focus progression
+        block_focuses = self._get_block_focuses(primary_goal, len(block_weeks))
+        intensity_progressions = ["Foundation", "Building", "Peak"]
+        
+        week_counter = 1
+        for block_num, (weeks, focus) in enumerate(zip(block_weeks, block_focuses), 1):
+            # Create weekly plans for this block
+            weekly_plans = []
+            for week_offset in range(weeks):
+                week_number = week_counter + week_offset
+                weekly_plan = self._create_weekly_plan(
+                    week_number=week_number,
+                    days_per_week=days_per_week,
+                    training_days=training_days,
+                    session_types=session_types_per_week,
+                    default_time=default_time,
+                    primary_goal=primary_goal,
+                    experience_level=request.experience_level,
+                    block_focus=focus
+                )
+                weekly_plans.append(weekly_plan)
+            
+            block = ProgramBlock(
+                block_name=f"Block {block_num}: {focus}",
+                block_number=block_num,
+                weeks_duration=weeks,
+                primary_goal=primary_goal,
+                weekly_plans=weekly_plans,
+                block_focus=focus,
+                intensity_progression=intensity_progressions[min(block_num - 1, 2)]
+            )
+            blocks.append(block)
+            week_counter += weeks
+        
+        return blocks
+    
+    def _get_block_focuses(self, primary_goal: str, num_blocks: int) -> List[str]:
+        """
+        Get focus areas for each block based on primary goal.
+        Uses config with hardcoded fallback.
+        """
+        # Try to get from config first
+        try:
+            focus_config = self.config_loader.config.get("block_focus_progression", {})
+            if primary_goal in focus_config:
+                focuses = focus_config[primary_goal]
+                return focuses[:num_blocks]
+        except Exception:
+            pass
+        
+        # Fallback to defaults
+        default_focus_map = {
+            "strength": ["Strength Foundation", "Strength Building", "Strength Peak"],
+            "hypertrophy": ["Volume Accumulation", "Intensification", "Metabolic Stress"],
+            "endurance": ["Aerobic Base", "Threshold Development", "Peak Conditioning"],
+            "fat_loss": ["Metabolic Conditioning", "High Intensity", "Maintenance"],
+            "general_fitness": ["Foundation", "Development", "Performance"]
+        }
+        focuses = default_focus_map.get(primary_goal, default_focus_map["general_fitness"])
+        return focuses[:num_blocks]
+    
+    def _create_weekly_plan(
+        self,
+        week_number: int,
+        days_per_week: int,
+        training_days: List[int],
+        session_types: List[str],
+        default_time: int,
+        primary_goal: str,
+        experience_level: str,
+        block_focus: str
+    ) -> WeeklyPlan:
+        """
+        Create a weekly plan with session skeletons.
+        """
+        sessions = []
+        all_days = set(range(1, 8))
+        training_day_set = set(training_days)
+        rest_days = list(all_days - training_day_set)
+        
+        for i, day_number in enumerate(training_days):
+            # Cycle through session types
+            session_type_str = session_types[i % len(session_types)]
+            session_type = self._map_session_type(session_type_str)
+            
+            session = self._create_session_skeleton(
+                week_number=week_number,
+                day_number=day_number,
+                session_index=i,
+                session_type=session_type,
+                duration=default_time,
+                experience_level=experience_level,
+                primary_goal=primary_goal
+            )
+            sessions.append(session)
+        
+        total_training_time = sum(s.total_duration_minutes for s in sessions)
+        
+        return WeeklyPlan(
+            week_number=week_number,
+            sessions=sessions,
+            total_sessions=len(sessions),
+            weekly_focus=block_focus,
+            total_training_time=total_training_time,
+            rest_days=sorted(rest_days)
+        )
+    
+    def _map_session_type(self, session_type_str: str) -> SessionType:
+        """
+        Map string session type to SessionType enum.
+        """
+        mapping = {
+            "resistance": SessionType.RESISTANCE_ACCESSORY,
+            "hyrox": SessionType.HYROX_STYLE,
+            "cardio": SessionType.CARDIO_ONLY,
+            "mobility": SessionType.MOBILITY_ONLY,
+            "recovery": SessionType.MOBILITY_ONLY  # Map recovery to mobility
+        }
+        return mapping.get(session_type_str, SessionType.RESISTANCE_ACCESSORY)
+    
+    def _create_session_skeleton(
+        self,
+        week_number: int,
+        day_number: int,
+        session_index: int,
+        session_type: SessionType,
+        duration: int,
+        experience_level: str,
+        primary_goal: str,
+        hyrox_usage_counts: Optional[Dict[int, int]] = None,
+    ) -> SessionSkeleton:
+        """
+        Create a session skeleton with warmup, main, and cooldown blocks.
+        
+        For HYROX_STYLE sessions, attempts to attach a pre-built Hyrox workout
+        from the hyrox_workouts table. Falls back to generic blocks if unavailable.
+        """
+        session_id = f"sess_w{week_number}_d{day_number}_{uuid.uuid4().hex[:8]}"
+        
+        # Determine session focus based on type
+        focus_map = {
+            SessionType.RESISTANCE_ACCESSORY: "Resistance Training",
+            SessionType.RESISTANCE_CIRCUITS: "Circuit Training",
+            SessionType.HYROX_STYLE: "Hyrox Conditioning",
+            SessionType.CARDIO_ONLY: "Cardiovascular Training",
+            SessionType.MOBILITY_ONLY: "Mobility & Recovery"
+        }
+        session_focus = focus_map.get(session_type, "General Training")
+        
+        # Calculate block durations from config (with fallback percentages)
+        time_allocation = self._get_session_time_allocation()
+        warmup_duration = max(5, int(duration * time_allocation["warmup"]))
+        cooldown_duration = max(5, int(duration * time_allocation["cooldown"]))
+        main_duration = duration - warmup_duration - cooldown_duration
+        
+        # Create blocks
+        blocks = [
+            self._create_warmup_block(warmup_duration),
+            self._create_main_block(main_duration, session_type, primary_goal),
+            self._create_cooldown_block(cooldown_duration)
+        ]
+        
+        # Determine target muscle groups using the region rotation logic
+        target_groups = self._select_primary_region_with_rotation(
+            session_type=session_type,
+            day_number=day_number,
+            previous_regions=[],  # Could be enhanced to track across sessions
+            week_number=week_number,
+            goal=primary_goal
+        )
+        
+        # Hyrox workout attachment — attach a pre-built workout reference
+        # when the session type is HYROX_STYLE and the feature is enabled.
+        # The actual workout content (lines/tags) is loaded by the frontend
+        # via the /api/hyrox/workouts/{id} endpoint.
+        hyrox_workout_id = None
+        hyrox_workout_name = None
+        
+        if session_type == SessionType.HYROX_STYLE and self._hyrox_config.get("enabled", True):
+            # Selection is deferred to runtime when DB session is available.
+            # During skeleton generation (no DB), we set a placeholder note.
+            logger.debug(
+                f"HYROX_STYLE session w{week_number}d{day_number}: "
+                f"Hyrox workout selection available at runtime with DB session"
+            )
+        
+        return SessionSkeleton(
+            session_id=session_id,
+            day_number=day_number,
+            session_focus=session_focus,
+            total_duration_minutes=duration,
+            blocks=blocks,
+            target_muscle_groups=target_groups,
+            session_type=session_type,
+            difficulty_level=experience_level,
+            hyrox_workout_id=hyrox_workout_id,
+            hyrox_workout_name=hyrox_workout_name,
+        )
+    
+    def _create_warmup_block(self, duration: int) -> SessionBlock:
+        """
+        Create a warmup block.
+        """
+        return SessionBlock(
+            block_type=BlockType.WARMUP,
+            duration_minutes=duration,
+            constraints=BlockConstraints(
+                compound=False,
+                spinal_compression=[SpinalCompression.NONE, SpinalCompression.LOW],
+                min_duration=5,
+                max_duration=15
+            ),
+            target_sets=2,
+            target_reps="10-15",
+            target_rest_seconds=30,
+            notes="Dynamic warmup and mobility preparation"
+        )
+    
+    def _create_main_block(self, duration: int, session_type: SessionType, primary_goal: str) -> SessionBlock:
+        """
+        Create a main training block.
+        Uses config-driven parameters with fallbacks.
+        """
+        # Get parameters from config or use fallbacks
+        block_params = self._get_main_block_params(session_type, primary_goal)
+        
+        return SessionBlock(
+            block_type=BlockType.MAIN,
+            session_type=session_type,
+            duration_minutes=duration,
+            constraints=BlockConstraints(
+                compound=block_params["compound"],
+                disciplines=block_params["disciplines"],
+                min_duration=20,
+                max_duration=90
+            ),
+            target_sets=block_params["target_sets"],
+            target_reps=block_params["target_reps"],
+            target_rest_seconds=block_params["target_rest"],
+            notes=f"Main {session_type.value} block"
+        )
+    
+    def _create_cooldown_block(self, duration: int) -> SessionBlock:
+        """
+        Create a cooldown block.
+        """
+        return SessionBlock(
+            block_type=BlockType.COOLDOWN,
+            duration_minutes=duration,
+            constraints=BlockConstraints(
+                compound=False,
+                spinal_compression=[SpinalCompression.NONE, SpinalCompression.LOW],
+                disciplines=[DisciplineType.MOBILITY],
+                min_duration=5,
+                max_duration=15
+            ),
+            target_sets=1,
+            target_reps="30-60s holds",
+            target_rest_seconds=0,
+            notes="Static stretching and recovery"
+        )
+    
+    # ========================================================================
+    # Config-Driven Helper Methods
+    # ========================================================================
+    
+    def _get_program_name(self, primary_goal: str) -> str:
+        """
+        Get program name based on goal from config with fallback.
+        """
+        try:
+            name_config = self.config_loader.config.get("program_names", {})
+            if primary_goal in name_config:
+                return name_config[primary_goal]
+        except Exception:
+            pass
+        
+        # Fallback defaults
+        default_names = {
+            "strength": "Strength Focus Program",
+            "hypertrophy": "Muscle Building Program",
+            "endurance": "Endurance & Conditioning Program",
+            "fat_loss": "Fat Loss & Toning Program",
+            "general_fitness": "General Fitness Program"
+        }
+        return default_names.get(primary_goal, "Custom Program")
+    
+    def _get_session_time_allocation(self) -> Dict[str, float]:
+        """
+        Get session time allocation percentages from config with fallback.
+        Returns dict with warmup, main, cooldown percentages (0.0-1.0).
+        """
+        try:
+            time_config = self.config_loader.config.get("time_allocation", {})
+            if time_config:
+                return {
+                    "warmup": time_config.get("warmup", 0.15),
+                    "main": time_config.get("main", 0.70),
+                    "cooldown": time_config.get("cooldown", 0.15)
+                }
+        except Exception:
+            pass
+        
+        # Fallback defaults
+        return {"warmup": 0.15, "main": 0.70, "cooldown": 0.15}
+    
+    def _get_main_block_params(self, session_type: SessionType, primary_goal: str) -> Dict[str, Any]:
+        """
+        Get main block parameters from config with fallback.
+        Returns dict with target_sets, target_reps, target_rest, compound, disciplines.
+        """
+        # Try to get from config
+        try:
+            block_config = self.config_loader.config.get("main_block_params", {})
+            session_config = block_config.get(session_type.value, {})
+            goal_config = session_config.get(primary_goal, session_config.get("default", {}))
+            
+            if goal_config:
+                disciplines = [DisciplineType(d) for d in goal_config.get("disciplines", [])]
+                return {
+                    "target_sets": goal_config.get("target_sets", 3),
+                    "target_reps": goal_config.get("target_reps", "8-12"),
+                    "target_rest": goal_config.get("target_rest", 60),
+                    "compound": goal_config.get("compound", True),
+                    "disciplines": disciplines if disciplines else [DisciplineType.RESISTANCE_TRAINING]
+                }
+        except Exception:
+            pass
+        
+        # Fallback defaults based on session type and goal
+        return self._get_default_main_block_params(session_type, primary_goal)
+    
+    def _get_default_main_block_params(self, session_type: SessionType, primary_goal: str) -> Dict[str, Any]:
+        """
+        Fallback defaults for main block parameters.
+        """
+        if session_type in [SessionType.RESISTANCE_ACCESSORY, SessionType.RESISTANCE_CIRCUITS]:
+            if primary_goal == "strength":
+                return {
+                    "target_sets": 4, "target_reps": "4-6", "target_rest": 180,
+                    "compound": True, "disciplines": [DisciplineType.RESISTANCE_TRAINING, DisciplineType.HYPERTROPHY]
+                }
+            elif primary_goal == "hypertrophy":
+                return {
+                    "target_sets": 4, "target_reps": "8-12", "target_rest": 90,
+                    "compound": True, "disciplines": [DisciplineType.RESISTANCE_TRAINING, DisciplineType.HYPERTROPHY]
+                }
+            else:
+                return {
+                    "target_sets": 3, "target_reps": "10-15", "target_rest": 60,
+                    "compound": True, "disciplines": [DisciplineType.RESISTANCE_TRAINING, DisciplineType.HYPERTROPHY]
+                }
+        elif session_type == SessionType.HYROX_STYLE:
+            return {
+                "target_sets": 3, "target_reps": "12-20", "target_rest": 45,
+                "compound": True, "disciplines": [DisciplineType.ENDURANCE, DisciplineType.RESISTANCE_TRAINING]
+            }
+        elif session_type == SessionType.CARDIO_ONLY:
+            return {
+                "target_sets": 1, "target_reps": "20-30 min", "target_rest": 0,
+                "compound": False, "disciplines": [DisciplineType.ENDURANCE]
+            }
+        else:  # MOBILITY_ONLY
+            return {
+                "target_sets": 2, "target_reps": "30-60s holds", "target_rest": 15,
+                "compound": False, "disciplines": [DisciplineType.MOBILITY]
+            }
     
     def _determine_primary_goal(self, normalized_goals: Dict[str, float]) -> str:
         """
@@ -511,25 +966,6 @@ class EnhancedProgramService:
         
         return goal_mapping.get(primary_goal, "general_fitness")
     
-    def _get_block_constraints(self, request: ProgramGenerationRequest, 
-                                goal: str) -> BlockConstraints:
-        """
-        Get block constraints from configuration.
-        
-        Args:
-            request: Program generation request
-            goal: Primary goal
-            
-        Returns:
-            BlockConstraints object
-        """
-        # This would pull from config - simplified for now
-        return BlockConstraints(
-            min_duration=30,
-            max_duration=90,
-            preferred_duration=60
-        )
-        
     def _validate_request(self, request: ProgramGenerationRequest) -> List[str]:
         """Validate the program generation request."""
         errors = []

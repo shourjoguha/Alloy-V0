@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Dict, List, Optional, Union, Any
 from datetime import datetime
 from enum import Enum
@@ -7,6 +7,24 @@ from models.enums import (
     SessionType, BlockType, EquipmentType, PrimaryRegion, 
     SpinalCompression, DisciplineType, MetricType
 )
+
+
+class SessionMovement(BaseModel):
+    """A single movement within a session block."""
+    
+    movement_id: int = Field(..., description="Database ID of the movement")
+    movement_name: str = Field(..., description="Name of the movement")
+    discipline: str = Field(..., description="Movement discipline (e.g., 'resistance training')")
+    pattern_subtype: Optional[str] = Field(None, description="Pattern subtype (e.g., 'squat', 'hinge')")
+    primary_region: str = Field(..., description="Primary muscle region targeted")
+    primary_muscle: Optional[str] = Field(None, description="Primary muscle targeted")
+    compound: Optional[bool] = Field(None, description="Whether this is a compound movement")
+    sets: int = Field(..., ge=1, le=10, description="Number of sets")
+    reps: str = Field(..., description="Rep range or count (e.g., '8-12' or '10')")
+    rest_seconds: int = Field(..., ge=0, le=300, description="Rest between sets in seconds")
+    equipment_used: Optional[str] = Field(None, description="Equipment used for this movement")
+    notes: Optional[str] = Field(None, description="Additional coaching notes")
+    order: int = Field(1, ge=1, description="Order of movement within the block")
 
 
 class BlockConstraints(BaseModel):
@@ -33,6 +51,9 @@ class SessionBlock(BaseModel):
     target_reps: Optional[str] = Field(None, description="Target rep range (e.g., '8-12')")
     target_rest_seconds: Optional[int] = Field(None, ge=0, le=300, description="Target rest between sets")
     notes: Optional[str] = Field(None, description="Additional notes for this block")
+    movements: List[SessionMovement] = Field(
+        default_factory=list, description="Populated movements for this block"
+    )
 
 
 class SessionSkeleton(BaseModel):
@@ -41,13 +62,19 @@ class SessionSkeleton(BaseModel):
     session_id: str = Field(..., description="Unique session identifier")
     day_number: int = Field(..., ge=1, le=7, description="Day of week (1=Monday, 7=Sunday)")
     session_focus: str = Field(..., description="Primary focus of this session")
-    total_duration_minutes: int = Field(..., ge=15, le=180, description="Total session duration")
+    total_duration_minutes: int = Field(..., ge=5, le=120, description="Total session duration")
     blocks: List[SessionBlock] = Field(..., description="Session blocks in order")
     target_muscle_groups: Optional[List[PrimaryRegion]] = Field(
         None, description="Primary muscle groups to target"
     )
     session_type: SessionType = Field(..., description="Main session type")
     difficulty_level: str = Field("intermediate", description="Session difficulty level")
+    hyrox_workout_id: Optional[int] = Field(
+        None, description="ID of attached Hyrox workout from hyrox_workouts table"
+    )
+    hyrox_workout_name: Optional[str] = Field(
+        None, description="Name of attached Hyrox workout for display"
+    )
 
 
 class WeeklyPlan(BaseModel):
@@ -122,11 +149,12 @@ class ProgramGenerationRequest(BaseModel):
     program_length_weeks: int = Field(..., ge=8, le=12, description="Program length in weeks")
     experience_level: str = Field("intermediate", description="User experience level")
     
-    @validator('normalized_goals')
-    def validate_normalized_goals(cls, v):
+    @field_validator('normalized_goals')
+    @classmethod
+    def validate_normalized_goals(cls, v: Dict[str, float]) -> Dict[str, float]:
         required_keys = [
-            "primary_strength", "normalized_hypertrophy_fat_loss", 
-            "normalized_power_mobility", "strength_bias", "endurance_bias"
+            "primary_strength", "normalized_hypertrophy_fat_loss",
+            "normalized_power_mobility", "strength_bias", "endurance_bias",
         ]
         for key in required_keys:
             if key not in v:
@@ -153,23 +181,22 @@ class ProgramGenerationResponse(BaseModel):
         default=None, description="Count of each session type"
     )
     
-    class Config:
-        schema_extra = {
-            "example": {
-                "success": True,
-                "program_skeleton": {
-                    "program_id": "prog_123",
-                    "user_id": "user_456",
-                    "program_name": "Strength Focus Program",
-                    "total_weeks": 12,
-                    "total_sessions": 36,
-                    "primary_goal": "strength",
-                    "secondary_goals": ["hypertrophy", "power"]
-                },
-                "session_breakdown": {
-                    "resistance_accessory": 20,
-                    "resistance_circuits": 8,
-                    "mobility_only": 8
-                }
-            }
-        }
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [{
+            "success": True,
+            "program_skeleton": {
+                "program_id": "prog_123",
+                "user_id": "user_456",
+                "program_name": "Strength Focus Program",
+                "total_weeks": 12,
+                "total_sessions": 36,
+                "primary_goal": "strength",
+                "secondary_goals": ["hypertrophy", "power"],
+            },
+            "session_breakdown": {
+                "resistance_accessory": 20,
+                "resistance_circuits": 8,
+                "mobility_only": 8,
+            },
+        }]
+    })

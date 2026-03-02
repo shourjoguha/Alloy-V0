@@ -1,0 +1,47 @@
+# Alloy AI Fitness System - Program Configuration
+session_constraints:
+  warmup:
+    compound: false
+    spinal_compression: ["none", "low"]
+    min_duration: 5
+    max_duration: 15
+    
+  cooldown:
+    compound: false
+    spinal_compression: ["none", "low"]
+    min_duration: 5
+    max_duration: 15
+    
+  main_blocks:
+    resistance_accessory:
+      compound: true
+      disciplines: ["strength", "hypertrophy"]
+      min_duration: 20
+      max_duration: 90
+      
+    resistance_circuits:
+      compound: true
+      disciplines: ["strength", "endurance"]
+      min_duration: 15
+      max_duration: 60
+      
+    hyrox_style:
+      disciplines: ["endurance", "mixed"]
+      min_duration: 20
+      max_duration: 45
+      
+    mobility_only:
+      compound: false
+      disciplines: ["mobility"]
+      min_duration: 15
+      max_duration: 45
+      
+    cardio_only:
+      disciplines: ["endurance"]
+      min_duration: 20
+      max_duration: 60
+
+time_allocation:
+  warmup: 0.15
+  main: 0.70
+  cooldown: 0.15

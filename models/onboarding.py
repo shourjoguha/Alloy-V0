@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Dict, List, Optional, Union
 from datetime import datetime
 import math
@@ -14,8 +14,9 @@ class GoalSlider(BaseModel):
     value: float = Field(..., ge=0.0, le=1.0, description="Slider value from 0.0 to 1.0")
     label: str = Field(..., description="Human-readable label for the slider")
     
-    @validator('value')
-    def validate_slider_value(cls, v):
+    @field_validator('value')
+    @classmethod
+    def validate_slider_value(cls, v: float) -> float:
         if not 0.0 <= v <= 1.0:
             raise ValueError("Slider value must be between 0.0 and 1.0")
         return v
@@ -46,7 +47,11 @@ class HierarchicalGoalSliders(BaseModel):
     normalized_power_mobility: Optional[float] = Field(None, description="Normalized power/mobility weight")
     
     def normalize_sliders(self) -> Dict[str, float]:
-        """Apply sigmoid normalization to secondary sliders based on primary."""
+        """Apply sigmoid normalization to secondary sliders based on primary.
+
+        DEPRECATED: Prefer GoalNormalizer.normalize_all_sliders() which is
+        config-driven and the single source of truth for normalization math.
+        """
         primary_value = self.primary_slider.value
         
         # Sigmoid parameters from config
@@ -93,8 +98,9 @@ class TimeAllocation(BaseModel):
         default=False, description="Let system optimize time allocation"
     )
     
-    @validator('custom_times_per_day')
-    def validate_custom_times(cls, v):
+    @field_validator('custom_times_per_day')
+    @classmethod
+    def validate_custom_times(cls, v: Optional[Dict[str, int]]) -> Optional[Dict[str, int]]:
         if v is not None:
             valid_days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
             for day, time in v.items():
@@ -118,8 +124,9 @@ class AvailabilityConfig(BaseModel):
         default_factory=TimeAllocation, description="Time allocation settings"
     )
     
-    @validator('preferred_days')
-    def validate_preferred_days(cls, v):
+    @field_validator('preferred_days')
+    @classmethod
+    def validate_preferred_days(cls, v: Optional[List[str]]) -> Optional[List[str]]:
         if v is not None:
             valid_days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
             for day in v:
@@ -187,22 +194,21 @@ class OnboardingResponse(BaseModel):
         default=None, description="Configuration warnings"
     )
     
-    class Config:
-        schema_extra = {
-            "example": {
-                "success": True,
-                "normalized_goals": {
-                    "primary_strength": 0.7,
-                    "normalized_hypertrophy_fat_loss": 0.65,
-                    "normalized_power_mobility": 0.72,
-                    "strength_bias": 0.75,
-                    "endurance_bias": 0.25
-                },
-                "recommended_program_length": 12,
-                "time_allocation_suggestion": {
-                    "monday": 75,
-                    "wednesday": 75,
-                    "friday": 90
-                }
-            }
-        }
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [{
+            "success": True,
+            "normalized_goals": {
+                "primary_strength": 0.7,
+                "normalized_hypertrophy_fat_loss": 0.65,
+                "normalized_power_mobility": 0.72,
+                "strength_bias": 0.75,
+                "endurance_bias": 0.25,
+            },
+            "recommended_program_length": 12,
+            "time_allocation_suggestion": {
+                "monday": 75,
+                "wednesday": 75,
+                "friday": 90,
+            },
+        }]
+    })

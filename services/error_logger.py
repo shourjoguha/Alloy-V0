@@ -18,7 +18,7 @@ class EnhancedErrorLogger:
     def __init__(self, log_file_path: Optional[Path] = None, environment: str = "development"):
         """Initialize error logger with file path and environment."""
         if log_file_path is None:
-            log_file_path = Path(__file__).parent.parent / "logs" / "error_logs.json"
+            log_file_path = Path(__file__).parent.parent / "logs" / "error_logs.jsonl"
         
         self.log_file_path = log_file_path
         self.environment = environment

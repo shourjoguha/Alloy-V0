@@ -1,11 +1,17 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 import logging
 import os
 from pathlib import Path
 
 from api.routes import router as onboarding_router
+from api.hyrox_routes import router as hyrox_router
+from config.database import init_db, close_db
+from services.error_logger import error_logger
 
 # Configure logging
 logging.basicConfig(
@@ -37,9 +43,17 @@ async def lifespan(app: FastAPI):
             # Create default files if they don't exist
             create_default_config(file_path, file)
     
+    # Initialise database connection pool
+    try:
+        init_db()
+        logger.info("Database connection pool initialised")
+    except Exception as e:
+        logger.warning(f"Database initialisation failed (non-fatal): {e}")
+    
     yield
     
     # Shutdown
+    await close_db()
     logger.info(f"Shutting down {APP_NAME}")
 
 
@@ -164,18 +178,36 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configure CORS
+# Configure CORS — restrict origins per environment
+_cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+# Request logging middleware (lightweight)
+@app.middleware("http")
+async def log_requests(request, call_next):
+    """Log requests for debugging."""
+    if request.method == "OPTIONS":
+        return await call_next(request)
+    
+    response = await call_next(request)
+    
+    # Only log non-200 responses
+    if response.status_code >= 400:
+        logger.warning(f"{request.method} {request.url.path} -> {response.status_code}")
+    
+    return response
+
+
 # Include routers
 app.include_router(onboarding_router)
+app.include_router(hyrox_router)
 
 
 @app.get("/")
@@ -186,7 +218,7 @@ async def root():
         "version": APP_VERSION,
         "description": APP_DESCRIPTION,
         "status": "running",
-        "timestamp": "2024-01-01T00:00:00Z"  # Will be replaced with actual timestamp
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -197,7 +229,7 @@ async def health_check():
         "status": "healthy",
         "service": APP_NAME,
         "version": APP_VERSION,
-        "timestamp": "2024-01-01T00:00:00Z"  # Will be replaced with actual timestamp
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -231,37 +263,59 @@ async def api_info():
     }
 
 
-# Error handlers
+# Error handlers - all errors logged centrally via error_logger
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors."""
+    errors = exc.errors()
+    
+    # Log to central error store
+    trace_id = error_logger.log_validation_error(
+        validation_errors=[f"{'.'.join(str(l) for l in e['loc'])}: {e['msg']}" for e in errors],
+        request_data={"path": str(request.url.path), "method": request.method},
+    )
+    
+    return JSONResponse(
+        status_code=422,
+        content={"error": {"code": "VALIDATION_ERROR", "message": "Invalid request data", "trace_id": trace_id}},
+    )
+
+
 @app.exception_handler(HTTPException)
-async def http_exception_handler(request, exc):
-    """Handle HTTP exceptions with standardized error format."""
-    return {
-        "error": {
-            "code": getattr(exc, 'code', 'HTTP_ERROR'),
-            "message": exc.detail if isinstance(exc.detail, str) else exc.detail.get("message", "HTTP error occurred"),
-            "details": exc.detail if isinstance(exc.detail, dict) else None,
-            "status_code": exc.status_code,
-            "trace_id": f"error_{datetime.now().timestamp()}",
-            "timestamp": "2024-01-01T00:00:00Z"  # Will be replaced with actual timestamp
-        }
-    }
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Handle HTTP exceptions."""
+    msg = exc.detail if isinstance(exc.detail, str) else exc.detail.get("message", "Request failed")
+    
+    # Log 4xx/5xx to central store
+    if exc.status_code >= 400:
+        trace_id = error_logger.log_error(
+            error_code=f"HTTP_{exc.status_code}",
+            error_message=msg,
+            error_details={"path": str(request.url.path), "detail": exc.detail},
+        )
+    else:
+        trace_id = None
+    
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": {"code": f"HTTP_{exc.status_code}", "message": msg, "trace_id": trace_id}},
+    )
 
 
 @app.exception_handler(Exception)
-async def general_exception_handler(request, exc):
-    """Handle general exceptions with standardized error format."""
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handle unexpected exceptions."""
+    trace_id = error_logger.log_error(
+        error_code="INTERNAL_ERROR",
+        error_message="Unexpected server error",
+        error_details={"exception": str(exc), "type": type(exc).__name__},
+        context={"path": str(request.url.path), "method": request.method},
+    )
     
-    return {
-        "error": {
-            "code": "INTERNAL_SERVER_ERROR",
-            "message": "An unexpected error occurred",
-            "details": str(exc),
-            "status_code": 500,
-            "trace_id": f"error_{datetime.now().timestamp()}",
-            "timestamp": "2024-01-01T00:00:00Z"  # Will be replaced with actual timestamp
-        }
-    }
+    return JSONResponse(
+        status_code=500,
+        content={"error": {"code": "INTERNAL_ERROR", "message": "Something went wrong", "trace_id": trace_id}},
+    )
 
 
 if __name__ == "__main__":

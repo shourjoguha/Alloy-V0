@@ -553,6 +553,40 @@ class ConfigLoader:
         """
         return self.config.get("accessory_movement_priority", [])
     
+    def get_hyrox_workout_selection_config(self) -> dict[str, object]:
+        """
+        Get Hyrox workout selection configuration.
+
+        Controls how pre-built Hyrox workouts are selected and placed into
+        program sessions. Includes time tolerance, repeat limits, and
+        accessory-block eligibility settings.
+
+        Returns:
+            Dictionary with selection parameters. Keys:
+            - enabled: bool
+            - time_tolerance_minutes: int
+            - max_repeats_per_program: int
+            - min_weeks_between_repeat: int
+            - accessory_block_max_duration_minutes: int
+            - accessory_eligible_workout_types: list[str]
+            - session_eligible_workout_types: list[str]
+        """
+        defaults = {
+            "enabled": True,
+            "time_tolerance_minutes": 5,
+            "max_repeats_per_program": 2,
+            "min_weeks_between_repeat": 2,
+            "accessory_block_max_duration_minutes": 15,
+            "accessory_eligible_workout_types": ["amrap", "emom", "for_time"],
+            "session_eligible_workout_types": [
+                "amrap", "emom", "for_time", "rounds_for_time",
+                "time_cap", "ladder", "mini_circuit", "explicit_time_guidance"
+            ],
+        }
+        config = self.config.get("hyrox_workout_selection", {})
+        # Merge with defaults so missing keys fall back
+        return {**defaults, **config}
+
     def get_enum_values(self, enum_name: str) -> list[str]:
         """
         Get valid enum values for a movement property from config.

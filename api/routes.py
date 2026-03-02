@@ -1,7 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, List, Optional
 import logging
+import uuid
 from datetime import datetime
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.onboarding import (
     OnboardingRequest, OnboardingResponse, HierarchicalGoalSliders,
@@ -10,7 +13,10 @@ from models.onboarding import (
 from models.program import ProgramGenerationRequest, ProgramGenerationResponse
 from services.goal_normalizer import GoalNormalizer
 from services.enhanced_program_service import EnhancedProgramService
+from services.movement_population_service import MovementPopulationService
+from services.error_logger import log_program_generation_error, log_validation_error
 from utils.config_loader import ConfigLoader
+from config.database import get_db
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -35,8 +41,12 @@ async def validate_goal_sliders(request: OnboardingRequest):
     try:
         logger.info(f"Validating goal sliders for user: {request.user_id}")
         
-        # Normalize goals using hierarchical algorithm
-        normalized_goals = request.get_normalized_goals()
+        # Normalize goals via GoalNormalizer (single source of truth)
+        normalized_goals = goal_normalizer.normalize_all_sliders({
+            "primary_slider": request.goals.primary_slider.value,
+            "hypertrophy_fat_loss": request.goals.hypertrophy_fat_loss.value,
+            "power_mobility": request.goals.power_mobility.value,
+        })
         
         # Validate goal consistency
         warnings = goal_normalizer.validate_goal_consistency({
@@ -81,7 +91,10 @@ async def validate_goal_sliders(request: OnboardingRequest):
 
 
 @router.post("/generate-program", response_model=ProgramGenerationResponse)
-async def generate_program_skeleton(request: OnboardingRequest):
+async def generate_program_skeleton(
+    request: OnboardingRequest,
+    db: AsyncSession = Depends(get_db)
+):
     """
     Generate a complete program skeleton based on onboarding configuration.
     
@@ -89,13 +102,22 @@ async def generate_program_skeleton(request: OnboardingRequest):
     - Training blocks with specific focuses
     - Weekly microcycles with session distribution
     - Daily session skeletons with warmup/main/cooldown blocks
-    - Movement constraints and target parameters
+    - Populated movements from database for each block
+    - Hyrox workout attachments for HYROX_STYLE sessions
     """
+    # Generate trace ID for request correlation
+    trace_id = f"gen_{uuid.uuid4().hex[:12]}"
+    
     try:
-        logger.info(f"Generating program skeleton for user: {request.user_id}")
+        logger.info(f"[{trace_id}] Generating program skeleton for user: {request.user_id}")
         
-        # First validate and normalize goals
-        normalized_goals = request.get_normalized_goals()
+        # Normalize goals via GoalNormalizer (single source of truth)
+        normalized_goals = goal_normalizer.normalize_all_sliders({
+            "primary_slider": request.goals.primary_slider.value,
+            "hypertrophy_fat_loss": request.goals.hypertrophy_fat_loss.value,
+            "power_mobility": request.goals.power_mobility.value,
+        })
+        logger.debug(f"[{trace_id}] Normalized goals: {normalized_goals}")
         
         # Create program generation request
         program_request = ProgramGenerationRequest(
@@ -113,31 +135,80 @@ async def generate_program_skeleton(request: OnboardingRequest):
             experience_level=request.experience_level
         )
         
+        logger.info(f"[{trace_id}] Program request created: {request.availability.days_per_week} days/week, {request.program_length_weeks} weeks")
+        
         # Generate program skeleton
-        program_response = program_service.generate_program_skeleton(program_request)
+        program_response = await program_service.generate_program_skeleton(program_request)
         
         if not program_response.success:
-            logger.error(f"Program generation failed for user: {request.user_id}. Errors: {program_response.errors}")
+            error_details = program_response.errors or ["Unknown error"]
+            logger.error(f"[{trace_id}] Program generation failed for user: {request.user_id}. Errors: {error_details}")
+            
+            # Log to error logger for persistence
+            log_program_generation_error(
+                error=Exception("Program generation returned failure"),
+                request_data={
+                    "user_id": request.user_id,
+                    "days_per_week": request.availability.days_per_week,
+                    "program_length_weeks": request.program_length_weeks
+                },
+                validation_errors=error_details,
+                context={"trace_id": trace_id}
+            )
+            
             raise HTTPException(
                 status_code=400,
                 detail={
                     "error": {
                         "code": "PROGRAM_GENERATION_FAILED",
                         "message": "Failed to generate program skeleton",
-                        "details": program_response.errors,
-                        "trace_id": f"generate_{request.user_id}_{datetime.now().timestamp()}",
+                        "details": error_details,
+                        "trace_id": trace_id,
                         "timestamp": datetime.utcnow().isoformat()
                     }
                 }
             )
         
-        logger.info(f"Program skeleton generated successfully for user: {request.user_id}")
+        # Populate movements into the program blocks
+        try:
+            population_service = MovementPopulationService(db, config_loader)
+            populated_skeleton = await population_service.populate_program(
+                program_skeleton=program_response.program_skeleton,
+                available_equipment=request.available_equipment
+            )
+            program_response.program_skeleton = populated_skeleton
+            logger.info(f"[{trace_id}] Program populated with movements successfully")
+        except Exception as pop_error:
+            # Log but don't fail - return skeleton without movements
+            logger.warning(
+                f"[{trace_id}] Movement population failed (non-fatal): {pop_error}",
+                exc_info=True
+            )
+            program_response.warnings = program_response.warnings or []
+            program_response.warnings.append(
+                f"Movement population failed: {str(pop_error)}. Program returned without movements."
+            )
+        
+        logger.info(f"[{trace_id}] Program skeleton generated successfully for user: {request.user_id}, program_id: {program_response.program_skeleton.program_id if program_response.program_skeleton else 'N/A'}")
         return program_response
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Program generation failed for user: {request.user_id}. Unexpected error: {str(e)}")
+        logger.error(f"[{trace_id}] Program generation failed for user: {request.user_id}. Unexpected error: {str(e)}", exc_info=True)
+        
+        # Log to error logger for persistence and debugging
+        log_program_generation_error(
+            error=e,
+            request_data={
+                "user_id": request.user_id,
+                "days_per_week": request.availability.days_per_week,
+                "program_length_weeks": request.program_length_weeks,
+                "experience_level": request.experience_level
+            },
+            context={"trace_id": trace_id}
+        )
+        
         raise HTTPException(
             status_code=500,
             detail={
@@ -145,7 +216,7 @@ async def generate_program_skeleton(request: OnboardingRequest):
                     "code": "INTERNAL_SERVER_ERROR",
                     "message": "An unexpected error occurred during program generation",
                     "details": str(e),
-                    "trace_id": f"error_{request.user_id}_{datetime.now().timestamp()}",
+                    "trace_id": trace_id,
                     "timestamp": datetime.utcnow().isoformat()
                 }
             }

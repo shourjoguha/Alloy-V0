@@ -279,7 +279,7 @@ class SafeMigrationRunner:
                 try:
                     affected_rows = exec_result.rowcount if hasattr(exec_result, 'rowcount') else 0
                     result["affected_rows"] += affected_rows
-                except:
+                except Exception:
                     pass  # Not all statements return rowcount
                 
                 result["statements_executed"] += 1

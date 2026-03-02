@@ -946,6 +946,49 @@ olympic_restrictions:
     - olympic
 
 # ----------------------------------------------------------------------------
+# HYROX WORKOUT SELECTION
+# ----------------------------------------------------------------------------
+# Controls how pre-built Hyrox workouts from the hyrox_workouts table are
+# selected and placed into program sessions.
+#
+# Selection logic uses hyrox_workouts table (workout_type, total_time_minutes,
+# is_complex) only. workout_goal is display-only and NOT used for selection.
+
+hyrox_workout_selection:
+  # Feature toggle — set to false to disable Hyrox workout placement entirely
+  enabled: true
+
+  # How many minutes over/under the session time budget a workout may be
+  time_tolerance_minutes: 5
+
+  # Maximum times the same workout can appear in a single program
+  max_repeats_per_program: 2
+
+  # Minimum weeks between uses of the same workout
+  min_weeks_between_repeat: 2
+
+  # Max duration (minutes) for a Hyrox workout to be placed in the accessory
+  # portion of a resistance day's main block
+  accessory_block_max_duration_minutes: 15
+
+  # Workout types eligible for accessory-block placement (shorter formats)
+  accessory_eligible_workout_types:
+    - amrap
+    - emom
+    - for_time
+
+  # Workout types eligible for full Hyrox session placement (all formats)
+  session_eligible_workout_types:
+    - amrap
+    - emom
+    - for_time
+    - rounds_for_time
+    - time_cap
+    - ladder
+    - mini_circuit
+    - explicit_time_guidance
+
+# ----------------------------------------------------------------------------
 # VALIDATION RULES
 # ----------------------------------------------------------------------------
 validation:

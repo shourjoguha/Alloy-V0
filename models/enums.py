@@ -74,19 +74,20 @@ class DisciplineType(str, Enum):
     STRETCH = "stretch"
     CARDIO = "cardio"
 
-    # Database-valid discipline values for validation
-    DB_VALID_DISCIPLINES = {
-        "resistance training",
-        "endurance", 
-        "power",
-        "mobility",
-        "mixed",
-        "olympic",
-        "crossfit",
-        "athletic",
-        "stretch",
-        "cardio"
-    }
+
+# Database-valid discipline values for validation (module-level, not an enum member)
+DB_VALID_DISCIPLINES: set[str] = {
+    "resistance training",
+    "endurance",
+    "power",
+    "mobility",
+    "mixed",
+    "olympic",
+    "crossfit",
+    "athletic",
+    "stretch",
+    "cardio",
+}
 
 
 class MetricType(str, Enum):
@@ -155,14 +156,13 @@ def map_db_region_to_internal(db_region: str) -> str:
     return REGION_MAPPING.get(db_region, db_region)
 
 
-def get_internal_muscle_group(db_region: str) -> str:
-    """Get internal muscle group name from database region."""
-    return REGION_MAPPING.get(db_region, db_region)
+# Alias kept for backward compatibility
+get_internal_muscle_group = map_db_region_to_internal
 
 
 def validate_discipline_value(discipline: str) -> bool:
     """Validate that a discipline value exists in the database."""
-    return discipline in DisciplineType.DB_VALID_DISCIPLINES
+    return discipline in DB_VALID_DISCIPLINES
 
 
 def get_db_discipline_values(disciplines: List[DisciplineType]) -> List[str]:
@@ -210,7 +210,7 @@ class MovementConstraint:
         },
         SessionType.CARDIO_ONLY: {
             "compound": False,
-            "discipline": [DisciplineType.CARDIO, DisciplineType.ATHLETIC],
+            "discipline": ["cardio", "athletic"],  # DB string values (was enum refs)
             "compound_filter": False
         }
     }
@@ -232,7 +232,8 @@ def is_plyometric_movement(movement_name: str, discipline: str) -> bool:
     Detect plyometric movements based on real database patterns.
     """
     # From database analysis: athletic discipline + jump/leap/hop keywords
-    if discipline == DisciplineType.ATHLETIC:
+    # NOTE: `discipline` is a DB string value.
+    if discipline == DisciplineType.ATHLETIC.value:
         name_lower = movement_name.lower()
         if any(keyword in name_lower for keyword in ["jump", "leap", "hop"]):
             return True
@@ -242,8 +243,14 @@ def is_plyometric_movement(movement_name: str, discipline: str) -> bool:
 def is_mobility_appropriate(discipline: str) -> bool:
     """
     Determine if movement is appropriate for mobility-focused days.
+
+    NOTE: `discipline` is a DB string value.
     """
-    return discipline in [DisciplineType.MOBILITY, DisciplineType.STRETCH, DisciplineType.ATHLETIC]
+    return discipline in [
+        DisciplineType.MOBILITY.value,
+        DisciplineType.STRETCH.value,
+        DisciplineType.ATHLETIC.value,
+    ]
 
 
 def is_olympic_appropriate(session_type: str, user_level: str) -> bool:
