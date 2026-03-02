@@ -71,6 +71,14 @@ export const THEME = {
     full: '9999px',
   },
 
+  /** Amber accent for dashboard CTAs and stat values */
+  amber: {
+    accent: '#D4A843',
+    accentHover: '#C49A35',
+    accentLight: '#F5D98A',
+    accentMuted: 'rgba(212, 168, 67, 0.15)',
+  },
+
   /** Chart color palette — ordered for consistent series coloring */
   chartColors: [
     '#0ea5e9', // primary-500

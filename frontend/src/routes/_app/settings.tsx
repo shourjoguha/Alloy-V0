@@ -21,10 +21,14 @@ export const Route = createFileRoute('/_app/settings')({
 
 function SettingsPage() {
   const prefs = useAppStore((s) => s.preferences);
+  const age = useAppStore((s) => s.age);
+  const gender = useAppStore((s) => s.gender);
   const setTheme = useAppStore((s) => s.setTheme);
   const setWeightUnit = useAppStore((s) => s.setWeightUnit);
   const setDistanceUnit = useAppStore((s) => s.setDistanceUnit);
   const setDefaultBodyMapView = useAppStore((s) => s.setDefaultBodyMapView);
+  const setAge = useAppStore((s) => s.setAge);
+  const setGender = useAppStore((s) => s.setGender);
   const resetPreferences = useAppStore((s) => s.resetPreferences);
 
   return (
@@ -37,7 +41,39 @@ function SettingsPage() {
       </div>
 
       <div className="space-y-6 max-w-md">
-        {/* ── Appearance ────────────────────────────────────────── */}
+        {/* ── Profile ──────────────────────────────────────────────── */}
+        <Section title="Profile">
+          <Row label="Age">
+            <input
+              type="number"
+              min={8}
+              max={110}
+              value={age ?? ''}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === '') { setAge(null); return; }
+                const n = Number(v);
+                if (n >= 8 && n <= 110) setAge(n);
+              }}
+              placeholder="—"
+              className={cn(
+                'w-20 px-3 py-1.5 rounded-lg text-sm text-right',
+                'border border-surface-200 dark:border-surface-700',
+                'bg-white dark:bg-surface-800 text-surface-800 dark:text-surface-200',
+                'focus:outline-none focus:ring-2 focus:ring-primary-500'
+              )}
+            />
+          </Row>
+          <Row label="Gender">
+            <SegmentedPicker
+              options={['male', 'female']}
+              value={gender ?? ''}
+              onChange={(v) => setGender(v as 'male' | 'female')}
+            />
+          </Row>
+        </Section>
+
+        {/* ── Appearance ────────────────────────────────────────────── */}
         <Section title="Appearance">
           <Row label="Theme">
             <div className="flex items-center gap-1 p-1 rounded-xl bg-surface-100 dark:bg-surface-800">

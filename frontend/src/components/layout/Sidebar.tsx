@@ -10,7 +10,6 @@ import { PanelLeftClose, PanelLeftOpen, Zap } from 'lucide-react';
 import { NAV_ITEMS } from '../../config/navigation.config';
 import { useUIStore } from '../../stores/ui.store';
 import { cn } from '../../lib/utils';
-import { ThemeToggle } from './ThemeToggle';
 import { Tooltip } from '../ui/tooltip';
 import { Separator } from '../ui/separator';
 
@@ -99,8 +98,6 @@ export function Sidebar() {
 
       {/* Bottom actions */}
       <div className="flex flex-col gap-1 p-2">
-        <ThemeToggle />
-
         {/* Collapse toggle */}
         <Tooltip
           content={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}

@@ -67,27 +67,11 @@ class DisciplineType(str, Enum):
     POWER = "power"
     MOBILITY = "mobility"
     MIXED = "mixed"
-    HYPERTROPHY = "hypertrophy"  # Keep for internal mapping, not in DB
     OLYMPIC = "olympic"
     CROSSFIT = "crossfit"
     ATHLETIC = "athletic"
     STRETCH = "stretch"
     CARDIO = "cardio"
-
-
-# Database-valid discipline values for validation (module-level, not an enum member)
-DB_VALID_DISCIPLINES: set[str] = {
-    "resistance training",
-    "endurance",
-    "power",
-    "mobility",
-    "mixed",
-    "olympic",
-    "crossfit",
-    "athletic",
-    "stretch",
-    "cardio",
-}
 
 
 class MetricType(str, Enum):
@@ -160,70 +144,9 @@ def map_db_region_to_internal(db_region: str) -> str:
 get_internal_muscle_group = map_db_region_to_internal
 
 
-def validate_discipline_value(discipline: str) -> bool:
-    """Validate that a discipline value exists in the database."""
-    return discipline in DB_VALID_DISCIPLINES
-
-
 def get_db_discipline_values(disciplines: List[DisciplineType]) -> List[str]:
     """Convert enum disciplines to database string values."""
     return [discipline.value for discipline in disciplines]
-
-
-class MovementConstraint:
-    """Movement constraints for different block types."""
-    
-    WARMUP_CONSTRAINTS = {
-        "compound": False,  # Only non-compound movements
-        "spinal_compression": [SpinalCompression.NONE.value, SpinalCompression.LOW.value],
-        "discipline": ["mobility", "stretch", "athletic"],  # DB string values
-        "movement_name_patterns": ["jump", "leap", "hop", "mobility", "stretch"]
-    }
-    
-    COOLDOWN_CONSTRAINTS = {
-        "compound": False,
-        "spinal_compression": [SpinalCompression.NONE.value, SpinalCompression.LOW.value],
-        "discipline": ["mobility", "stretch"],  # DB string values
-        "movement_name_patterns": ["stretch", "mobility", "foam_roll"]
-    }
-    
-    MAIN_BLOCK_CONSTRAINTS = {
-        SessionType.RESISTANCE_ACCESSORY: {
-            "compound": True,
-            "discipline": ["resistance training", "hypertrophy"],  # DB string values
-            "compound_filter": True  # Only compound for strength section
-        },
-        SessionType.RESISTANCE_CIRCUITS: {
-            "compound": True,
-            "discipline": ["resistance training", "crossfit"],  # DB string values
-            "compound_filter": None  # All movements for accessory section
-        },
-        SessionType.HYROX_STYLE: {
-            "compound": True,
-            "discipline": ["resistance training", "cardio", "athletic"],  # DB string values
-            "compound_filter": None
-        },
-        SessionType.MOBILITY_ONLY: {
-            "compound": False,
-            "discipline": ["mobility", "stretch"],  # DB string values
-            "compound_filter": False
-        },
-        SessionType.CARDIO_ONLY: {
-            "compound": False,
-            "discipline": ["cardio", "athletic"],  # DB string values (was enum refs)
-            "compound_filter": False
-        }
-    }
-
-
-# Session type to discipline mapping for database queries
-SESSION_TO_DISCIPLINE_MAPPING = {
-    SessionType.RESISTANCE_ACCESSORY: [DisciplineType.RESISTANCE_TRAINING, DisciplineType.HYPERTROPHY],
-    SessionType.RESISTANCE_CIRCUITS: [DisciplineType.RESISTANCE_TRAINING, DisciplineType.CROSSFIT],
-    SessionType.HYROX_STYLE: [DisciplineType.RESISTANCE_TRAINING, DisciplineType.CARDIO, DisciplineType.ATHLETIC],
-    SessionType.MOBILITY_ONLY: [DisciplineType.MOBILITY, DisciplineType.STRETCH],
-    SessionType.CARDIO_ONLY: [DisciplineType.CARDIO, DisciplineType.ATHLETIC]
-}
 
 
 # Plyometric detection logic

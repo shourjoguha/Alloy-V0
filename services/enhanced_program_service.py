@@ -906,17 +906,17 @@ class EnhancedProgramService:
             if primary_goal == "strength":
                 return {
                     "target_sets": 4, "target_reps": "4-6", "target_rest": 180,
-                    "compound": True, "disciplines": [DisciplineType.RESISTANCE_TRAINING, DisciplineType.HYPERTROPHY]
+                    "compound": True, "disciplines": [DisciplineType.RESISTANCE_TRAINING]
                 }
             elif primary_goal == "hypertrophy":
                 return {
                     "target_sets": 4, "target_reps": "8-12", "target_rest": 90,
-                    "compound": True, "disciplines": [DisciplineType.RESISTANCE_TRAINING, DisciplineType.HYPERTROPHY]
+                    "compound": True, "disciplines": [DisciplineType.RESISTANCE_TRAINING]
                 }
             else:
                 return {
                     "target_sets": 3, "target_reps": "10-15", "target_rest": 60,
-                    "compound": True, "disciplines": [DisciplineType.RESISTANCE_TRAINING, DisciplineType.HYPERTROPHY]
+                    "compound": True, "disciplines": [DisciplineType.RESISTANCE_TRAINING]
                 }
         elif session_type == SessionType.HYROX_STYLE:
             return {

@@ -4,9 +4,9 @@
  */
 
 import { Clock, Target } from 'lucide-react';
-import { cn, dayNumberToName, formatDuration } from '../../lib/utils';
+import { cn, dayNumberToName, formatDuration, toTitleCase } from '../../lib/utils';
 import { Card } from '../ui/card';
-import type { SessionSkeleton } from '../../types/program';
+import type { SessionSkeleton, SessionBlock } from '../../types/program';
 import { SessionType } from '../../types/enums';
 
 interface SessionCardProps {
@@ -50,23 +50,37 @@ export function SessionCard({ session, compact = false, onClick }: SessionCardPr
     return (
       <Card
         variant="interactive"
-        className="w-full text-left p-3 animate-fade-in"
+        className="w-full text-left p-3 animate-fade-in overflow-hidden"
         onClick={onClick}
         role="button"
         tabIndex={0}
       >
-        <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full', colorClass)}>
+        {/* Header: badge + duration */}
+        <div className="flex items-center justify-between gap-1 mb-1.5">
+          <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0', colorClass)}>
             {typeLabel}
           </span>
-          <span className="text-xs text-text-muted flex items-center gap-1">
-            <Clock className="w-3 h-3" />
+          <span className="text-[10px] text-text-muted flex items-center gap-0.5 shrink-0">
+            <Clock className="w-2.5 h-2.5" />
             {formatDuration(session.total_duration_minutes)}
           </span>
         </div>
-        <p className="text-xs text-surface-600 dark:text-surface-400 capitalize">
+
+        {/* Focus title */}
+        <p className="text-xs font-medium text-surface-700 dark:text-surface-300 capitalize mb-2 leading-tight">
           {hasHyroxWorkout ? session.hyrox_workout_name : session.session_focus}
         </p>
+
+        {/* Inline block sections with movements */}
+        <div className="space-y-0">
+          {session.blocks.map((block, idx) => (
+            <CompactBlockSection
+              key={`${block.block_type}-${idx}`}
+              block={block}
+              isLast={idx === session.blocks.length - 1}
+            />
+          ))}
+        </div>
       </Card>
     );
   }
@@ -128,5 +142,52 @@ export function SessionCard({ session, compact = false, onClick }: SessionCardPr
         </div>
       )}
     </Card>
+  );
+}
+
+// ─── Compact Block Section (for program timeline cards) ─────────────────────
+
+const COMPACT_BLOCK_LABELS: Record<string, string> = {
+  warmup: 'Warm-Up',
+  main: 'Main',
+  cooldown: 'Cool-Down',
+};
+
+function CompactBlockSection({ block, isLast }: { block: SessionBlock; isLast: boolean }) {
+  const label = COMPACT_BLOCK_LABELS[block.block_type] ?? toTitleCase(block.block_type);
+  const isMain = block.block_type === 'main';
+
+  return (
+    <div className={cn(!isLast && 'pb-1.5 mb-1.5 border-b border-surface-100 dark:border-surface-800/60')}>
+      <p className={cn(
+        'text-[9px] font-semibold uppercase tracking-wider mb-0.5',
+        isMain ? 'text-amber-accent' : 'text-surface-400 dark:text-surface-500'
+      )}>
+        {label}
+      </p>
+      {block.movements && block.movements.length > 0 ? (
+        <div className="space-y-0">
+          {block.movements.map((movement, mIdx) => (
+            <div key={mIdx} className="flex items-baseline justify-between gap-1 py-0.5">
+              <p className={cn(
+                'text-[10px] truncate min-w-0',
+                isMain
+                  ? 'font-medium text-surface-700 dark:text-surface-300'
+                  : 'text-surface-500 dark:text-surface-400'
+              )}>
+                {movement.movement_name}
+              </p>
+              <span className="text-[9px] text-surface-400 shrink-0">
+                {movement.sets}×{movement.reps}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-[9px] text-surface-300 dark:text-surface-600">
+          {formatDuration(block.duration_minutes)}
+        </p>
+      )}
+    </div>
   );
 }

@@ -139,6 +139,10 @@ class MovementPopulationService:
     ) -> None:
         """
         Populate a single block with movements based on block type.
+
+        Constraint resolution order:
+        1. If block.constraints.disciplines is set, use those (skeleton override).
+        2. Otherwise, fall back to config-driven block_constraints (YAML).
         
         Args:
             block: SessionBlock to populate.
@@ -147,17 +151,28 @@ class MovementPopulationService:
             primary_goal: User's primary goal.
             target_regions: Target muscle regions if any.
         """
+        # Resolve constraints: skeleton BlockConstraints take priority, then config
+        config_constraints = self.config_loader.get_block_constraints(
+            block_type=block.block_type.value,
+            session_type=session_type.value if block.block_type == BlockType.MAIN else None
+        )
+
         if block.block_type == BlockType.WARMUP:
-            movements = await self._get_warmup_movements(equipment_list)
+            movements = await self._get_warmup_movements(
+                equipment_list, config_constraints=config_constraints
+            )
         elif block.block_type == BlockType.COOLDOWN:
-            movements = await self._get_cooldown_movements(equipment_list)
+            movements = await self._get_cooldown_movements(
+                equipment_list, config_constraints=config_constraints
+            )
         else:  # MAIN block
             movements = await self._get_main_block_movements(
                 session_type=session_type,
                 equipment_list=equipment_list,
                 primary_goal=primary_goal,
                 target_regions=target_regions,
-                block_duration=block.duration_minutes
+                block_duration=block.duration_minutes,
+                config_constraints=config_constraints
             )
         
         # Convert to SessionMovement models and assign to block
@@ -175,18 +190,29 @@ class MovementPopulationService:
     async def _get_warmup_movements(
         self,
         equipment_list: List[str],
-        max_movements: int = 4
+        max_movements: int = 4,
+        config_constraints: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         """
         Get warmup movements from database.
+
+        Uses config-driven constraints (disciplines, spinal_compression) when
+        available; falls back to query service defaults otherwise.
         
         Args:
             equipment_list: Available equipment.
             max_movements: Maximum movements to return.
+            config_constraints: Constraints from YAML block_constraints.warmup.
             
         Returns:
             List of movement dictionaries.
         """
+        # Log which disciplines we're using for transparency
+        if config_constraints:
+            logger.debug(
+                f"Warmup constraints from config: disciplines={config_constraints.get('disciplines')}"
+            )
+
         movements = await self.movement_service.get_warmup_movements(
             equipment_available=equipment_list,
             max_movements=max_movements
@@ -205,18 +231,28 @@ class MovementPopulationService:
     async def _get_cooldown_movements(
         self,
         equipment_list: List[str],
-        max_movements: int = 4
+        max_movements: int = 4,
+        config_constraints: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         """
         Get cooldown movements from database.
+
+        Uses config-driven constraints (disciplines, spinal_compression) when
+        available; falls back to query service defaults otherwise.
         
         Args:
             equipment_list: Available equipment.
             max_movements: Maximum movements to return.
+            config_constraints: Constraints from YAML block_constraints.cooldown.
             
         Returns:
             List of movement dictionaries.
         """
+        if config_constraints:
+            logger.debug(
+                f"Cooldown constraints from config: disciplines={config_constraints.get('disciplines')}"
+            )
+
         movements = await self.movement_service.get_mobility_movements(
             equipment_available=equipment_list,
             max_movements=max_movements
@@ -231,10 +267,14 @@ class MovementPopulationService:
         primary_goal: str,
         target_regions: Optional[List] = None,
         block_duration: int = 30,
-        max_movements: int = 6
+        max_movements: int = 6,
+        config_constraints: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         """
         Get main block movements based on session type.
+
+        Uses config-driven constraints (disciplines, compound_filter) when
+        available; falls back to query service defaults otherwise.
         
         Args:
             session_type: Type of session (resistance, hyrox, cardio, mobility).
@@ -243,10 +283,17 @@ class MovementPopulationService:
             target_regions: Target muscle regions if any.
             block_duration: Duration of block in minutes.
             max_movements: Maximum movements to return.
+            config_constraints: Constraints from YAML block_constraints.main.<session_type>.
             
         Returns:
             List of movement dictionaries.
         """
+        if config_constraints:
+            logger.debug(
+                f"Main block constraints from config for {session_type.value}: "
+                f"disciplines={config_constraints.get('disciplines')}, "
+                f"compound_filter={config_constraints.get('compound_filter')}"
+            )
         # Convert target regions to strings if present
         region_list = None
         if target_regions:

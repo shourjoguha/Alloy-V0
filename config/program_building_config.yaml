@@ -861,6 +861,81 @@ movement_query_disciplines:
       - athletic
 
 # ----------------------------------------------------------------------------
+# BLOCK CONSTRAINTS
+# ----------------------------------------------------------------------------
+# Movement constraints for each block type.
+# Single source of truth — replaces MovementConstraint class in enums.py
+# and inline BlockConstraints in enhanced_program_service.py.
+#
+# Used by MovementPopulationService to filter movements for each block.
+
+block_constraints:
+  warmup:
+    compound: false
+    spinal_compression:
+      - none
+      - low
+    disciplines:
+      - mobility
+      - stretch
+      - athletic
+    movement_name_patterns:
+      - jump
+      - leap
+      - hop
+      - mobility
+      - stretch
+
+  cooldown:
+    compound: false
+    spinal_compression:
+      - none
+      - low
+    disciplines:
+      - mobility
+      - stretch
+    movement_name_patterns:
+      - stretch
+      - mobility
+      - foam_roll
+
+  main:
+    resistance_accessory:
+      compound: true
+      disciplines:
+        - resistance training
+      compound_filter: true
+
+    resistance_circuits:
+      compound: true
+      disciplines:
+        - resistance training
+        - crossfit
+      compound_filter: null
+
+    hyrox_style:
+      compound: true
+      disciplines:
+        - resistance training
+        - cardio
+        - athletic
+      compound_filter: null
+
+    mobility_only:
+      compound: false
+      disciplines:
+        - mobility
+        - stretch
+      compound_filter: false
+
+    cardio_only:
+      compound: false
+      disciplines:
+        - cardio
+        - athletic
+      compound_filter: false
+
+# ----------------------------------------------------------------------------
 # DEFAULT PATTERN SUBTYPES
 # ----------------------------------------------------------------------------
 # Default pattern subtypes used as fallback when config values are missing.
@@ -1035,13 +1110,19 @@ validation:
 # ----------------------------------------------------------------------------
 metadata:
   config_name: "program_building_config"
-  version: "1.0.0"
-  last_updated: "2026-02-28"
+  version: "1.1.0"
+  last_updated: "2026-03-02"
   description: |
     Comprehensive configuration for workout program building including
     day type allocation, rest requirements, training splits, pattern
     subtype mappings, and baseline + multiplier resolution logic.
   changelog:
+    - version: "1.1.0"
+      date: "2026-03-02"
+      changes:
+        - "Added block_constraints section as single source of truth for warmup/cooldown/main block constraints"
+        - "Replaced MovementConstraint class, SESSION_TO_DISCIPLINE_MAPPING, and DB_VALID_DISCIPLINES from enums.py"
+        - "Removed DisciplineType.HYPERTROPHY (not a valid DB enum value)"
     - version: "1.0.0"
       date: "2026-02-28"
       changes:

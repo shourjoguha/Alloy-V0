@@ -41,6 +41,25 @@ async def get_hyrox_service(
 # Endpoints
 # ---------------------------------------------------------------------------
 
+@router.get("/movements")
+async def get_hyrox_movement_names(
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Return distinct movement names that appear in hyrox workout lines.
+    Used to populate the 'Includes' filter in the Circuits search tab.
+    """
+    query = """
+    SELECT DISTINCT movement_name
+    FROM hyrox_workout_lines_staging
+    WHERE movement_name IS NOT NULL AND movement_name != ''
+    ORDER BY movement_name ASC
+    """
+    result = await db.execute(text(query))
+    names = [str(row[0]) for row in result.fetchall()]
+    return {"movement_names": names}
+
+
 @router.get("/workouts", response_model=HyroxSearchResponse)
 async def search_hyrox_workouts(
     workout_type: Optional[str] = Query(None, description="Filter by workout type (amrap, emom, for_time, etc.)"),
@@ -48,6 +67,8 @@ async def search_hyrox_workouts(
     max_duration: Optional[int] = Query(None, le=120, description="Maximum duration in minutes"),
     is_complex: Optional[bool] = Query(None, description="Filter by complexity"),
     has_mini_circuit: Optional[bool] = Query(None, description="Filter by has_mini_circuit"),
+    includes: Optional[list[str]] = Query(None, description="Filter circuits that include specific movements"),
+    excludes: Optional[list[str]] = Query(None, description="Exclude circuits that contain any of these movements"),
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(20, ge=1, le=100, description="Items per page"),
     service: HyroxWorkoutService = Depends(get_hyrox_service),
@@ -70,6 +91,8 @@ async def search_hyrox_workouts(
             max_duration_minutes=max_duration,
             is_complex=is_complex,
             has_mini_circuit=has_mini_circuit,
+            includes=includes,
+            excludes=excludes,
             page=page,
             per_page=per_page,
         )

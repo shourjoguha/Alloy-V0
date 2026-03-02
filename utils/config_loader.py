@@ -587,6 +587,39 @@ class ConfigLoader:
         # Merge with defaults so missing keys fall back
         return {**defaults, **config}
 
+    def get_block_constraints(self, block_type: str, session_type: str | None = None) -> dict[str, object]:
+        """
+        Get movement constraints for a block type from config.
+
+        This is the single source of truth for block constraints, replacing
+        MovementConstraint in enums.py and inline BlockConstraints in
+        enhanced_program_service.py.
+
+        Args:
+            block_type: Block type ("warmup", "main", "cooldown")
+            session_type: Session type (required for "main" blocks, e.g.
+                          "resistance_accessory", "hyrox_style")
+
+        Returns:
+            Constraint dictionary with keys like compound, disciplines,
+            spinal_compression, movement_name_patterns, compound_filter.
+            Returns empty dict if no constraints found.
+        """
+        block_config = self.config.get("block_constraints", {})
+
+        if block_type in ("warmup", "cooldown"):
+            return block_config.get(block_type, {})
+
+        if block_type == "main":
+            main_config = block_config.get("main", {})
+            if session_type:
+                return main_config.get(session_type, {})
+            logger.warning("get_block_constraints called for 'main' without session_type")
+            return {}
+
+        logger.warning(f"Unknown block_type '{block_type}' in get_block_constraints")
+        return {}
+
     def get_enum_values(self, enum_name: str) -> list[str]:
         """
         Get valid enum values for a movement property from config.

@@ -10,6 +10,7 @@ from pathlib import Path
 
 from api.routes import router as onboarding_router
 from api.hyrox_routes import router as hyrox_router
+from api.movement_routes import router as movement_router
 from config.database import init_db, close_db
 from services.error_logger import error_logger
 
@@ -208,6 +209,7 @@ async def log_requests(request, call_next):
 # Include routers
 app.include_router(onboarding_router)
 app.include_router(hyrox_router)
+app.include_router(movement_router)
 
 
 @app.get("/")

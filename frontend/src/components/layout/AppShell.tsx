@@ -10,7 +10,6 @@
 
 import { Outlet, useRouterState } from '@tanstack/react-router';
 import { AnimatePresence } from 'framer-motion';
-import { Sidebar } from './Sidebar';
 import { TopNav } from './TopNav';
 import { BottomNav } from './BottomNav';
 import { PageTransition } from './PageTransition';
@@ -22,10 +21,7 @@ export function AppShell() {
   return (
     <TooltipProvider>
       <div className="flex h-screen overflow-hidden bg-surface-50 dark:bg-surface-950">
-        {/* Desktop sidebar */}
-        <Sidebar />
-
-        {/* Main content area */}
+        {/* Main content area — full width (sidebar removed) */}
         <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
           <TopNav />
 

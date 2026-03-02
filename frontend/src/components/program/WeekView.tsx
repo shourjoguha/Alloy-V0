@@ -30,13 +30,13 @@ export function WeekView({ plan, onSessionClick }: WeekViewProps) {
         </span>
       </div>
 
-      <div className="grid grid-cols-7 gap-1.5">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
         {allDays.map((dayNum) => {
           const session = plan.sessions.find((s) => s.day_number === dayNum);
           const isRest = plan.rest_days.includes(dayNum);
 
           return (
-            <div key={dayNum} className="min-w-0">
+            <div key={dayNum} className="min-w-[160px] max-w-[200px] flex-shrink-0">
               {/* Day label */}
               <p className="text-[10px] text-surface-400 text-center mb-1">
                 {dayNumberToName(dayNum).slice(0, 3)}

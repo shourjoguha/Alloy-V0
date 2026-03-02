@@ -44,6 +44,12 @@ interface OnboardingDraft {
 /** Active widget IDs on the dashboard, in display order */
 type DashboardLayout = string[];
 
+/** Lightweight reference to a favorited circuit */
+interface FavoriteCircuit {
+  id: number;
+  name: string;
+}
+
 interface AppState {
   /** Anonymous session ID — generated once, persisted to localStorage */
   userId: string;
@@ -52,6 +58,14 @@ interface AppState {
   dashboardLayout: DashboardLayout;
   /** The most recently generated program — persisted to localStorage */
   activeProgram: ProgramSkeleton | null;
+  /** Favorite movement IDs — persisted */
+  favoriteMovementIds: number[];
+  /** Favorite circuit references — persisted */
+  favoriteCircuits: FavoriteCircuit[];
+  /** User profile: age */
+  age: number | null;
+  /** User profile: gender */
+  gender: 'male' | 'female' | null;
 }
 
 interface AppActions {
@@ -71,6 +85,14 @@ interface AppActions {
   // Program
   setActiveProgram: (program: ProgramSkeleton) => void;
   clearActiveProgram: () => void;
+
+  // Favorites
+  toggleFavoriteMovement: (id: number) => void;
+  toggleFavoriteCircuit: (id: number, name: string) => void;
+
+  // Profile
+  setAge: (age: number | null) => void;
+  setGender: (gender: 'male' | 'female' | null) => void;
 
   // Full reset
   resetPreferences: () => void;
@@ -109,6 +131,10 @@ export const useAppStore = create<AppState & AppActions>()(
       onboardingDraft: null,
       dashboardLayout: DEFAULT_DASHBOARD_LAYOUT,
       activeProgram: null,
+      favoriteMovementIds: [],
+      favoriteCircuits: [],
+      age: null,
+      gender: null,
 
       // Preference actions
       setTheme: (theme) =>
@@ -137,6 +163,24 @@ export const useAppStore = create<AppState & AppActions>()(
       setActiveProgram: (activeProgram) => set({ activeProgram }),
       clearActiveProgram: () => set({ activeProgram: null }),
 
+      // Favorites
+      toggleFavoriteMovement: (id) =>
+        set((s) => ({
+          favoriteMovementIds: s.favoriteMovementIds.includes(id)
+            ? s.favoriteMovementIds.filter((fid) => fid !== id)
+            : [...s.favoriteMovementIds, id],
+        })),
+      toggleFavoriteCircuit: (id, name) =>
+        set((s) => ({
+          favoriteCircuits: s.favoriteCircuits.some((c) => c.id === id)
+            ? s.favoriteCircuits.filter((c) => c.id !== id)
+            : [...s.favoriteCircuits, { id, name }],
+        })),
+
+      // Profile
+      setAge: (age) => set({ age }),
+      setGender: (gender) => set({ gender }),
+
       // Full reset
       resetPreferences: () =>
         set({
@@ -154,6 +198,10 @@ export const useAppStore = create<AppState & AppActions>()(
         onboardingDraft: state.onboardingDraft,
         dashboardLayout: state.dashboardLayout,
         activeProgram: state.activeProgram,
+        favoriteMovementIds: state.favoriteMovementIds,
+        favoriteCircuits: state.favoriteCircuits,
+        age: state.age,
+        gender: state.gender,
       }),
       version: STORE_VERSION,
       migrate: (persisted, version) => {
@@ -165,6 +213,10 @@ export const useAppStore = create<AppState & AppActions>()(
             onboardingDraft: null,
             dashboardLayout: DEFAULT_DASHBOARD_LAYOUT,
             activeProgram: null,
+            favoriteMovementIds: [],
+            favoriteCircuits: [],
+            age: null,
+            gender: null,
           };
         }
         return persisted as AppState & AppActions;

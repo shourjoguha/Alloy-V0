@@ -18,9 +18,15 @@ export const API_CONFIG = {
     },
     hyrox: {
       workouts: '/api/hyrox/workouts',
+      movements: '/api/hyrox/movements',
       workoutDetail: (id: number) => `/api/hyrox/workouts/${id}`,
       recommend: '/api/hyrox/workouts/recommend',
       health: '/api/hyrox/health',
+    },
+    movements: {
+      search: '/api/movements/search',
+      filters: '/api/movements/filters',
+      health: '/api/movements/health',
     },
     system: {
       health: '/health',

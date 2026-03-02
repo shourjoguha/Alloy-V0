@@ -34,6 +34,19 @@ export interface BlockConstraints {
   max_duration: number;
 }
 
+/** A concrete movement assigned to a session block */
+export interface SessionMovement {
+  movement_id: number;
+  movement_name: string;
+  primary_muscle?: string;
+  primary_region?: string;
+  sets: number;
+  reps: string;
+  rest_seconds: number;
+  rpe?: number;
+  notes?: string;
+}
+
 /** A single block within a session (warmup, main, cooldown) */
 export interface SessionBlock {
   /** Type of session block */
@@ -52,6 +65,8 @@ export interface SessionBlock {
   target_rest_seconds?: number;
   /** Additional notes for this block */
   notes?: string;
+  /** Populated movements (filled by MovementPopulationService) */
+  movements?: SessionMovement[];
 }
 
 /** Complete session skeleton with all blocks */

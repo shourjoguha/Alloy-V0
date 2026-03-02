@@ -18,7 +18,10 @@ export type ModalId =
   | 'swap-exercise'
   | 'confirm-discard'
   | 'region-soreness'
+  | 'exercise-browser'
   | null;
+
+type DashboardTab = 'personal' | 'squads';
 
 interface UIState {
   /** Desktop sidebar expanded or collapsed */
@@ -29,6 +32,16 @@ interface UIState {
   activeModal: ModalId;
   /** Data payload passed to the active modal */
   modalPayload: unknown;
+  /** Hamburger menu open state */
+  hamburgerMenuOpen: boolean;
+  /** Dashboard bottom tab: personal or squads */
+  selectedDashboardTab: DashboardTab;
+  /** Currently viewed week index (0-based within flattened weeks) */
+  selectedWeekIndex: number;
+  /** Currently selected day index within the week (null = none) */
+  selectedDayIndex: number | null;
+  /** Whether the workout selector CTA is expanded to show day pills */
+  workoutSelectorExpanded: boolean;
 }
 
 interface UIActions {
@@ -38,6 +51,13 @@ interface UIActions {
   toggleMobileMenu: () => void;
   openModal: (id: ModalId, payload?: unknown) => void;
   closeModal: () => void;
+  setHamburgerMenuOpen: (open: boolean) => void;
+  toggleHamburgerMenu: () => void;
+  setSelectedDashboardTab: (tab: DashboardTab) => void;
+  setSelectedWeekIndex: (index: number) => void;
+  setSelectedDayIndex: (index: number | null) => void;
+  setWorkoutSelectorExpanded: (expanded: boolean) => void;
+  toggleWorkoutSelector: () => void;
 }
 
 // ─── Store ───────────────────────────────────────────────────────────────────
@@ -48,6 +68,11 @@ export const useUIStore = create<UIState & UIActions>((set) => ({
   mobileMenuOpen: false,
   activeModal: null,
   modalPayload: null,
+  hamburgerMenuOpen: false,
+  selectedDashboardTab: 'personal',
+  selectedWeekIndex: 0,
+  selectedDayIndex: null,
+  workoutSelectorExpanded: false,
 
   // Actions
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
@@ -59,4 +84,13 @@ export const useUIStore = create<UIState & UIActions>((set) => ({
   openModal: (id, payload = null) =>
     set({ activeModal: id, modalPayload: payload }),
   closeModal: () => set({ activeModal: null, modalPayload: null }),
+
+  setHamburgerMenuOpen: (open) => set({ hamburgerMenuOpen: open }),
+  toggleHamburgerMenu: () => set((s) => ({ hamburgerMenuOpen: !s.hamburgerMenuOpen })),
+
+  setSelectedDashboardTab: (tab) => set({ selectedDashboardTab: tab }),
+  setSelectedWeekIndex: (index) => set({ selectedWeekIndex: index, selectedDayIndex: null, workoutSelectorExpanded: false }),
+  setSelectedDayIndex: (index) => set({ selectedDayIndex: index }),
+  setWorkoutSelectorExpanded: (expanded) => set({ workoutSelectorExpanded: expanded }),
+  toggleWorkoutSelector: () => set((s) => ({ workoutSelectorExpanded: !s.workoutSelectorExpanded })),
 }));

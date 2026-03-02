@@ -57,6 +57,8 @@ class HyroxWorkoutService:
         max_duration_minutes: Optional[int] = None,
         is_complex: Optional[bool] = None,
         has_mini_circuit: Optional[bool] = None,
+        includes: Optional[List[str]] = None,
+        excludes: Optional[List[str]] = None,
         page: int = 1,
         per_page: int = 20,
     ) -> HyroxSearchResponse:
@@ -97,6 +99,26 @@ class HyroxWorkoutService:
         if has_mini_circuit is not None:
             conditions.append("w.has_mini_circuit = :has_mini_circuit")
             params["has_mini_circuit"] = has_mini_circuit
+
+        # Filter by included movement names (workout must contain ALL specified movements)
+        if includes:
+            for i, movement_name in enumerate(includes):
+                param_key = f"inc_{i}"
+                conditions.append(
+                    f"EXISTS (SELECT 1 FROM hyrox_workout_lines_staging l "
+                    f"WHERE l.workout_id = w.id AND l.movement_name ILIKE :{param_key})"
+                )
+                params[param_key] = movement_name
+
+        # Exclude circuits that contain ANY of the specified movements
+        if excludes:
+            for i, movement_name in enumerate(excludes):
+                param_key = f"exc_{i}"
+                conditions.append(
+                    f"NOT EXISTS (SELECT 1 FROM hyrox_workout_lines_staging l "
+                    f"WHERE l.workout_id = w.id AND l.movement_name ILIKE :{param_key})"
+                )
+                params[param_key] = movement_name
 
         where_clause = " AND ".join(conditions) if conditions else "true"
 

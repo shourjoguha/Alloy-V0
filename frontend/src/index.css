@@ -91,6 +91,12 @@
   --color-cta: #c026d3;
   --color-cta-hover: #a21caf;
 
+  /* Amber accent (dashboard CTAs, stat values) */
+  --color-amber-accent: #D4A843;
+  --color-amber-accent-hover: #C49A35;
+  --color-amber-accent-light: #F5D98A;
+  --color-amber-accent-muted: rgba(212, 168, 67, 0.15);
+
   /* Borders */
   --color-border-default: #e4e4e7;
   --color-border-focus: #0ea5e9;
